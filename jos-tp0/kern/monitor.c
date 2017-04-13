@@ -61,6 +61,7 @@ mon_backtrace(int argc, char **argv, struct Trapframe *tf)
 	// Your code here.
         uint32_t *ebp = (uint32_t*) read_ebp();
         uint32_t eip = 0;
+        struct Eipdebuginfo info;
         //mientras epb no sea 0
         while (ebp){   
                 eip = *(ebp+1);
@@ -69,6 +70,9 @@ mon_backtrace(int argc, char **argv, struct Trapframe *tf)
                         cprintf(" %08x", *(ebp+i));
                 }
                 cprintf("\n");
+                debuginfo_eip(eip, &info);
+                cprintf("\t%s:%d: ",info.eip_file, info.eip_line);
+                cprintf("%.*s+%d\n", info.eip_fn_namelen, info.eip_fn_name, eip - info.eip_fn_addr);
                 ebp = (uint32_t*) *ebp; // cambio epb
         }
 	return 0;
