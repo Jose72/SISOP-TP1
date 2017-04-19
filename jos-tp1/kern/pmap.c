@@ -102,8 +102,20 @@ boot_alloc(uint32_t n)
 	// to a multiple of PGSIZE.
 	//
 	// LAB 2: Your code here.
+        
+        if ((uint32_t) (nextfree + n) % PGSIZE > npages ){
+                panic("boot_alloc: Out of memory\n");
+        }
 
-	return NULL;
+        if (n > 0) {
+                //el ROUNDUP me da una cantidad de bytes multiplo del PGSIZE
+                //donde entran los n bytes que quiero, se lo sumo a nextfree
+                nextfree += ROUNDUP(n, PGSIZE);
+        }
+        
+        result = nextfree;
+        // retorna char* para que puedas moverte de a bytes ?
+	return result;
 }
 
 // Set up a two-level page table:
