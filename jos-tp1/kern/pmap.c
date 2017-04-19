@@ -149,6 +149,10 @@ mem_init(void)
 	// to initialize all fields of each struct PageInfo to 0.
 	// Your code goes here:
 
+        //mem_init_pages+++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        pages = (struct PageInfo*) boot_alloc(npages*sizeof(struct PageInfo));    
+        memset(pages, 0, npages*sizeof(struct PageInfo));
+
 
 	//////////////////////////////////////////////////////////////////////
 	// Now that we've allocated the initial kernel data structures, we set
