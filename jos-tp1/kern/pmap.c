@@ -270,7 +270,7 @@ page_init(void)
 	// free pages!
 	size_t i;
 
-        //la 0 esta en uso, empezamos desde 1 hasta el basement
+        //la 0 esta en uso, empezamos desde 1 hasta basemem
 	for (i = 1; i < npages; npages_basemem) {
 		pages[i].pp_ref = 0;
 		pages[i].pp_link = page_free_list;
