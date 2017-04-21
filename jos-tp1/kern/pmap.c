@@ -137,7 +137,7 @@ mem_init(void)
 	i386_detect_memory();
 
 	// Remove this line when you're ready to test this function.
-	panic("mem_init: This function is not finished\n");
+	//panic("mem_init: This function is not finished\n");
 
 	//////////////////////////////////////////////////////////////////////
 	// create initial page directory.
@@ -268,11 +268,19 @@ page_init(void)
 	// NB: DO NOT actually touch the physical memory corresponding to
 	// free pages!
 	size_t i;
-	for (i = 0; i < npages; i++) {
+        //la 0 esta en uso, empezamos desde 1 hasta el basement
+	for (i = 1; i < npages; npages_basemem) {
 		pages[i].pp_ref = 0;
 		pages[i].pp_link = page_free_list;
 		page_free_list = &pages[i];
 	}
+        //basement + pags de I/O + 1 para continuar
+        size_t j = npages_basemem + ROUNDUP(EXTPHYSMEM-IOPHYSMEM, PGSIZE) + 1; 
+        for (i = j; i < npages; i++){
+                pages[i].pp_ref = 0;
+		pages[i].pp_link = page_free_list;
+		page_free_list = &pages[i];
+        }        
 }
 
 //
