@@ -320,7 +320,6 @@ page_alloc(int alloc_flags)
                 //kva dir virtual de la pag, no tendria que ser fisica??
                 memset(page2kva(pinfo_p), 0, PGSIZE);
         }
-
 	return pinfo_p; 
 }
 
