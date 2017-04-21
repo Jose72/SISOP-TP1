@@ -279,7 +279,7 @@ page_init(void)
 
         //+++++ como rayos marcar las paginas en uso ???? ++++++
 
-        //basement + pags de I/O para continuar
+        //basemem + pags de I/O para continuar
         size_t j = npages_basemem + ROUNDUP(EXTPHYSMEM-IOPHYSMEM, PGSIZE); 
         for (i = j; i < npages; i++){
                 pages[i].pp_ref = 0;
@@ -317,12 +317,11 @@ page_alloc(int alloc_flags)
 
         //si se cumple, la pagina se llena de 0's
         if (alloc_flags & ALLOC_ZERO) {
-                //dir virtual de la pag, no tendria que ser fisica??
-                char *physical_p = page2kva(pinfo_p);
-                memset(physical_p, 0, PGSIZE);
+                //kva dir virtual de la pag, no tendria que ser fisica??
+                memset(page2kva(pinfo_p), 0, PGSIZE);
         }
 
-	return pinfo_p;
+	return pinfo_p; 
 }
 
 //
@@ -333,8 +332,15 @@ void
 page_free(struct PageInfo *pp)
 {
 	// Fill this function in
-	// Hint: You may want to panic if pp->pp_ref is nonzero or
+	// Hint: You may want to panic if pp->pp_ref is nonzero or                  
 	// pp->pp_link is not NULL.
+        if (pp->pp_ref != 0 || pp->pplink != NULL){
+                panic("page_free: could not free page");        
+        }
+        //la primera en la lista de free pasa a ser la siguiente 
+        //y esta pasa  al frente de la lista
+        pp->link = page_free_list;
+        page_free_list = pp;
 }
 
 //
