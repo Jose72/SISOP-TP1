@@ -103,6 +103,7 @@ boot_alloc(uint32_t n)
 	//
 	// LAB 2: Your code here.
         
+        //+++++++ npages o npages_basemem ??? +++++++++
         if ((uint32_t) (nextfree + n) % PGSIZE > npages ){
                 panic("boot_alloc: Out of memory\n");
         }
@@ -268,14 +269,18 @@ page_init(void)
 	// NB: DO NOT actually touch the physical memory corresponding to
 	// free pages!
 	size_t i;
+
         //la 0 esta en uso, empezamos desde 1 hasta el basement
 	for (i = 1; i < npages; npages_basemem) {
 		pages[i].pp_ref = 0;
 		pages[i].pp_link = page_free_list;
 		page_free_list = &pages[i];
 	}
-        //basement + pags de I/O + 1 para continuar
-        size_t j = npages_basemem + ROUNDUP(EXTPHYSMEM-IOPHYSMEM, PGSIZE) + 1; 
+
+        //+++++ como rayos marcar las paginas en uso ???? ++++++
+
+        //basement + pags de I/O para continuar
+        size_t j = npages_basemem + ROUNDUP(EXTPHYSMEM-IOPHYSMEM, PGSIZE); 
         for (i = j; i < npages; i++){
                 pages[i].pp_ref = 0;
 		pages[i].pp_link = page_free_list;
@@ -298,8 +303,26 @@ page_init(void)
 struct PageInfo *
 page_alloc(int alloc_flags)
 {
-	// Fill this function in
-	return 0;
+        struct PageInfo *pinfo_p;
+
+        //si no hay mas paginas libres retorno NULL
+        if (page_free_list == NULL) return NULL;
+
+        //saco la pagina de la free list
+        //queda la siguiente
+        pinfo_p = page_free_list;  
+        page_free_list = pinfo_p->pp_link;
+        //pp_link a NULL
+        pinfo_p->pp_link = NULL;
+
+        //si se cumple, la pagina se llena de 0's
+        if (alloc_flags & ALLOC_ZERO) {
+                //dir virtual de la pag, no tendria que ser fisica??
+                char *physical_p = page2kva(pinfo_p);
+                memset(physical_p, 0, PGSIZE);
+        }
+
+	return pinfo_p;
 }
 
 //
