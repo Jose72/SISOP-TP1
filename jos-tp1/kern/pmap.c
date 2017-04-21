@@ -333,12 +333,12 @@ page_free(struct PageInfo *pp)
 	// Fill this function in
 	// Hint: You may want to panic if pp->pp_ref is nonzero or                  
 	// pp->pp_link is not NULL.
-        if (pp->pp_ref != 0 || pp->pplink != NULL){
+        if (pp->pp_ref != 0 || pp->pp_link != NULL){
                 panic("page_free: could not free page");        
         }
         //la primera en la lista de free pasa a ser la siguiente 
         //y esta pasa  al frente de la lista
-        pp->link = page_free_list;
+        pp->pp_link = page_free_list;
         page_free_list = pp;
 }
 
