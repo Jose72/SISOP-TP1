@@ -374,36 +374,23 @@ page_decref(struct PageInfo* pp)
 pte_t *
 pgdir_walk(pde_t *pgdir, const void *va, int create)
 {
-	// Fill this function in
+        //en la entrada del directorio, hay esta el pte_t *
+        pde_t *direc_entry_p = pgdir + PDX(va); 
         
-        //voy a la entrada del directorio, hay esta el pte_t *
-        //(hay que castear porque es un pde_t)
-        pde_t *direc_entry_p = &pgdir[PDX(va)]; 
-        pte_t *page_entry_p = NULL;
-        
-        if (*direc_entry_p & PTE_P) { // si esta la entrada
-                page_entry_p = (pte_t *)pgdir[PDX(va)];
-                page_entry_p = page_entry_p + PTX(va); //me muevo en la page table
-                page_entry_p = KADDR(*page_entry_p); //me quedo con al dir virtual
-                return page_entry_p;
-        }
-        
-        //si no esta la tabla y create == true 
-        if (create) {
+        if (*direc_entry_p & PTE_P) { // si esta la entrada en el dir
+                //a la entrada en el dir(que es pte addr) le saco la dir virtual
+                //sumo el offset de la page table y casteo
+                return (pde_t *) KADDR(PTE_ADDR(pgdir[PDX(va)])) + PTX(va);
+        }  
+        if (create) { //si no esta la tabla y create == true 
                 struct PageInfo * pinfo_p;
                 pinfo_p = page_alloc(ALLOC_ZERO); //reservo para la nueva pag
-                if (!pinfo_p) return page_entry_p; // si fallo retorno NULL
+                if (!pinfo_p) return NULL; // si fallo retorno NULL
+                pgdir[PDX(va)] = page2pa(pinfo_p) | PTE_P | PTE_U | PTE_W; 
                 pinfo_p->pp_ref++; //incremento ref   
-                pgdir[PDX(va)] = page2pa(pinfo_p) | PTE_W | PTE_P;
-
-                //++++codigo duplicado - arreglar ++++++++++++
-                page_entry_p = (pte_t *)pgdir[PDX(va)];
-                page_entry_p = page_entry_p + PTX(va); //me muevo en la page table
-                page_entry_p = KADDR(*page_entry_p); //me quedo con al dir virtual
-                return page_entry_p;
+                return (pde_t *) KADDR(PTE_ADDR(pgdir[PDX(va)])) + PTX(va);
        }
-
-        return page_entry_p;
+       return NULL;
 }
 
 //
@@ -451,17 +438,17 @@ boot_map_region(pde_t *pgdir, uintptr_t va, size_t size, physaddr_t pa, int perm
 int
 page_insert(pde_t *pgdir, struct PageInfo *pp, void *va, int perm)
 {
-	// Fill this function in
-
         //busco pte, si no esta la creo
         pte_t *pt_entry_p = pgdir_walk(pgdir, va, 1);
+        // si no pudo crearla
         if (!pt_entry_p) return -E_NO_MEM;
 
-        if(pt_entry_p & PTE_P) { //si ya esat mapeada remuevo
-                page_remove(pgdir, va);
-        }
+        pp->pp_ref++; //incremento ref
+
+        page_remove(pgdir, va);//la tlb se invalida dentro
+       
+        *pt_entry_p = page2pa(pp) | perm | PTE_P;
         
-        pp->ref++; //incremento ref
 	return 0;
 }
 
@@ -481,13 +468,12 @@ page_lookup(pde_t *pgdir, void *va, pte_t **pte_store)
 {
         //obtengo la pte, no quiero que cree si no encuentra
         pte_t *page_t_entry = pgdir_walk(pgdir, va, 0);
+        //si no esta retorna NULL
+        if (!page_t_entry || !(*page_t_entry & PTE_P)) return NULL; 
 
         if (pte_store) { //storeo si cumple
                 *pte_store = page_t_entry; 
         }
-
-        if (!page_t_entry || *page_t_entry & PTE_P) return NULL; //si no esta retorna NULL;
-     
         return pa2page(PTE_ADDR(*page_t_entry));
 }
 
@@ -508,13 +494,13 @@ page_lookup(pde_t *pgdir, void *va, pte_t **pte_store)
 //
 void
 page_remove(pde_t *pgdir, void *va)
-{       
+{
         //busco la pagina mapeada en va
         pte_t *pt_entry_p;
         struct PageInfo *pinfo_p = page_lookup(pgdir, va, &pt_entry_p);
         if (pinfo_p && (*pt_entry_p & PTE_P)) { // si esta
                 page_decref(pinfo_p); //decremento
-                *pt_entry_p = 0; // al pte a 0
+                *pt_entry_p = 0; // pte a 0
                 tlb_invalidate(pgdir, va); // invalido tlb
         }
 }
