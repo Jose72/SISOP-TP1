@@ -375,7 +375,35 @@ pte_t *
 pgdir_walk(pde_t *pgdir, const void *va, int create)
 {
 	// Fill this function in
-	return NULL;
+        
+        //voy a la entrada del directorio, hay esta el pte_t *
+        //(hay que castear porque es un pde_t)
+        pde_t *direc_entry_p = &pgdir[PDX(va)]; 
+        pte_t *page_entry_p = NULL;
+        
+        if (*direc_entry_p & PTE_P) { // si esta la entrada
+                page_entry_p = (pte_t *)pgdir[PDX(va)];
+                page_entry_p = page_entry_p + PTX(va); //me muevo en la page table
+                page_entry_p = KADDR(*page_entry_p); //me quedo con al dir virtual
+                return page_entry_p;
+        }
+        
+        //si no esta la tabla y create == true 
+        if (create) {
+                struct PageInfo * pinfo_p;
+                pinfo_p = page_alloc(ALLOC_ZERO); //reservo para la nueva pag
+                if (!pinfo_p) return page_entry_p; // si fallo retorno NULL
+                pinfo_p->pp_ref++; //incremento ref   
+                pgdir[PDX(va)] = page2pa(pinfo_p) | PTE_W | PTE_P;
+
+                //++++codigo duplicado - arreglar ++++++++++++
+                page_entry_p = (pte_t *)pgdir[PDX(va)];
+                page_entry_p = page_entry_p + PTX(va); //me muevo en la page table
+                page_entry_p = KADDR(*page_entry_p); //me quedo con al dir virtual
+                return page_entry_p;
+       }
+
+        return page_entry_p;
 }
 
 //
@@ -441,8 +469,17 @@ page_insert(pde_t *pgdir, struct PageInfo *pp, void *va, int perm)
 struct PageInfo *
 page_lookup(pde_t *pgdir, void *va, pte_t **pte_store)
 {
-	// Fill this function in
-	return NULL;
+        //obtengo la pte, no quiero que cree si no encuentra
+        pte_t *page_t_entry = pgdir_walk(pgdir, va, 0);
+
+        if (!page_t_entry) return NULL; //si no esta retorna NULL;
+
+        // si es NULL hay que storear igual ????????
+
+        if (pte_store) { //storeo si cumple
+                *pte_store = page_t_entry; 
+        }
+        return pa2page(PTE_ADDR(*page_t_entry));
 }
 
 //
