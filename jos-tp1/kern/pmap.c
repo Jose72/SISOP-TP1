@@ -407,7 +407,19 @@ pgdir_walk(pde_t *pgdir, const void *va, int create)
 static void
 boot_map_region(pde_t *pgdir, uintptr_t va, size_t size, physaddr_t pa, int perm)
 {
-	// Fill this function in
+	int pagesToBoot = size / PGSIZE;
+	int i;
+	for (i = 0; i < pagesToBoot; i++) {
+		// avanzar a la siguiente va y pa
+		va += PGSIZE;
+		pa += PGSIZE;
+
+		pte_t *pte = pgdir_walk(pgdir, (void *)va, 1);
+		if (!pte) {
+            panic("boot_map_region: Out of memory\n");
+		}
+		*pte = pa | perm | PTE_P;
+	}
 }
 
 //
