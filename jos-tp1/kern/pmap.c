@@ -85,6 +85,7 @@ static void *
 boot_alloc(uint32_t n)
 {
 	static char *nextfree;	// virtual address of next byte of free memory
+	extern char end[];
 	char *result;
 
 	// Initialize nextfree if this is the first time.
@@ -93,7 +94,6 @@ boot_alloc(uint32_t n)
 	// the first virtual address that the linker did *not* assign
 	// to any kernel code or global variables.
 	if (!nextfree) {
-		extern char end[];
 		nextfree = ROUNDUP((char *) end, PGSIZE);
 	}
 
@@ -102,19 +102,20 @@ boot_alloc(uint32_t n)
 	// to a multiple of PGSIZE.
 	//
 	// LAB 2: Your code here.
-        
-        //+++++++ npages o npages_basemem ??? +++++++++
-        if ((uint32_t) (nextfree + n) % PGSIZE > npages ){
-                panic("boot_alloc: Out of memory\n");
-        }
-
-        if (n > 0) {
-                //el ROUNDUP me da una cantidad de bytes multiplo del PGSIZE
-                //donde entran los n bytes que quiero, se lo sumo a nextfree
-                nextfree += ROUNDUP(n, PGSIZE);
-        }
-        
         result = nextfree;
+        if (n > 0) {
+        	char * aux = ROUNDUP((char *) end, PGSIZE);
+            //el ROUNDUP me da una cantidad de bytes multiplo del PGSIZE
+            //donde entran los n bytes que quiero, se lo sumo a nextfree
+            aux += ROUNDUP(n, PGSIZE);
+
+            if (PGNUM(aux) > npages * PGSIZE) {
+                panic("boot_alloc: Out of memory\n");
+            } else {
+            	nextfree = aux;
+            }
+        }
+        
         // retorna char* para que puedas moverte de a bytes ?
 	return result;
 }
@@ -270,22 +271,17 @@ page_init(void)
 	// free pages!
 	size_t i;
 
-        //la 0 esta en uso, empezamos desde 1 hasta basemem
-	for (i = 1; i < npages; npages_basemem) {
+    //la 0 esta en uso, empezamos desde 1 hasta basemem
+    // TODO: cambiar el 0x400000 por alguna macro que nos diga el tamaño del kernel a saltear
+	for (int i = 1; i < npages; ++i) {
+		if ((i * PGSIZE >= IOPHYSMEM) && (i * PGSIZE < (EXTPHYSMEM + 0x400000))) {
+			continue;
+		}
+
 		pages[i].pp_ref = 0;
 		pages[i].pp_link = page_free_list;
 		page_free_list = &pages[i];
 	}
-
-        //+++++ como rayos marcar las paginas en uso ???? ++++++
-
-        //basemem + pags de I/O para continuar
-        size_t j = npages_basemem + ROUNDUP(EXTPHYSMEM-IOPHYSMEM, PGSIZE); 
-        for (i = j; i < npages; i++){
-                pages[i].pp_ref = 0;
-		pages[i].pp_link = page_free_list;
-		page_free_list = &pages[i];
-        }        
 }
 
 //
