@@ -443,20 +443,12 @@ page_insert(pde_t *pgdir, struct PageInfo *pp, void *va, int perm)
         // si no pudo crearla
         if (!pt_entry_p) return -E_NO_MEM;
 
-<<<<<<< HEAD
         pp->pp_ref++; //incremento ref
 
         page_remove(pgdir, va);//la tlb se invalida dentro
        
         *pt_entry_p = page2pa(pp) | perm | PTE_P;
-        
-=======
-        if(*pt_entry_p & PTE_P) { //si ya esat mapeada remuevo
-                page_remove(pgdir, va);
-        }
-        
-        pp->pp_ref++; //incremento ref
->>>>>>> 61f54b91efd58ab471dc0cb52160fc5744090638
+
 	return 0;
 }
 
