@@ -452,6 +452,16 @@ int
 page_insert(pde_t *pgdir, struct PageInfo *pp, void *va, int perm)
 {
 	// Fill this function in
+
+        //busco pte, si no esta la creo
+        pte_t *pt_entry_p = pgdir_walk(pgdir, va, 1);
+        if (!pt_entry_p) return -E_NO_MEM;
+
+        if(pt_entry_p & PTE_P) { //si ya esat mapeada remuevo
+                page_remove(pgdir, va);
+        }
+        
+        pp->ref++; //incremento ref
 	return 0;
 }
 
@@ -472,13 +482,12 @@ page_lookup(pde_t *pgdir, void *va, pte_t **pte_store)
         //obtengo la pte, no quiero que cree si no encuentra
         pte_t *page_t_entry = pgdir_walk(pgdir, va, 0);
 
-        if (!page_t_entry) return NULL; //si no esta retorna NULL;
-
-        // si es NULL hay que storear igual ????????
-
         if (pte_store) { //storeo si cumple
                 *pte_store = page_t_entry; 
         }
+
+        if (!page_t_entry || *page_t_entry & PTE_P) return NULL; //si no esta retorna NULL;
+     
         return pa2page(PTE_ADDR(*page_t_entry));
 }
 
@@ -499,8 +508,15 @@ page_lookup(pde_t *pgdir, void *va, pte_t **pte_store)
 //
 void
 page_remove(pde_t *pgdir, void *va)
-{
-	// Fill this function in
+{       
+        //busco la pagina mapeada en va
+        pte_t *pt_entry_p;
+        struct PageInfo *pinfo_p = page_lookup(pgdir, va, &pt_entry_p);
+        if (pinfo_p && (*pt_entry_p & PTE_P)) { // si esta
+                page_decref(pinfo_p); //decremento
+                *pt_entry_p = 0; // al pte a 0
+                tlb_invalidate(pgdir, va); // invalido tlb
+        }
 }
 
 //
