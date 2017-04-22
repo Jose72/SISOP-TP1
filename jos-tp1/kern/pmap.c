@@ -457,11 +457,11 @@ page_insert(pde_t *pgdir, struct PageInfo *pp, void *va, int perm)
         pte_t *pt_entry_p = pgdir_walk(pgdir, va, 1);
         if (!pt_entry_p) return -E_NO_MEM;
 
-        if(pt_entry_p & PTE_P) { //si ya esat mapeada remuevo
+        if(*pt_entry_p & PTE_P) { //si ya esat mapeada remuevo
                 page_remove(pgdir, va);
         }
         
-        pp->ref++; //incremento ref
+        pp->pp_ref++; //incremento ref
 	return 0;
 }
 
