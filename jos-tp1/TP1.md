@@ -17,17 +17,23 @@ boot_alloc_pos
 
 ...
 
+Comienzo de boot_alloc():
+
 (gdb) print nextfree 
 $1 = 0x0  
 
 (gdb) print end 
 $2 = 327696 
 
+Final de de boot_alloc():
+
 (gdb) print nextfree 
 $3 = 0xf0119000 
 
 (gdb) print end 
 $4 = 327696 
+
+Se reserva espacio para el kernel (que comienza en la dirección virtual 0xf0000000) y devuelve la proxima direccion virtual  libre (0xf0119000), reservando aproxiamdamente 1.1 Mb
 
 page_alloc
 ----------
