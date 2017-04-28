@@ -17,16 +17,17 @@ boot_alloc_pos
 
 ...
 
-Breakpoint 1, boot_alloc (n=981) at kern/pmap.c:86
-(gdb) print nextfree
-$1 = 0x0
-(gdb) print end
-$2 = 327696
+(gdb) print nextfree 
+$1 = 0x0  
 
-(gdb) print nextfree
-$3 = 0xf0119000
-(gdb) print end
-$4 = 327696
+(gdb) print end 
+$2 = 327696 
+
+(gdb) print nextfree 
+$3 = 0xf0119000 
+
+(gdb) print end 
+$4 = 327696 
 
 page_alloc
 ----------
