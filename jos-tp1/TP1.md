@@ -15,6 +15,8 @@ se obtiene un valor que cae en la pagina fisica que queremos obtener. Luego se h
 boot_alloc_pos
 --------------
 
+Inspeccionando el binario compilado con el comando readelf, se encontro que la direccion mas alta es 0xf0117950, como el kernel empieza en al direccion virtual 0xf0000000, entonces se reservan 1145168 bytes, necesitandose 280 paginas de 4096 bytes para alojarlos, que sumados a la base del kernel nos darian la proxima direccion virtual libre, 0xf0118000.
+
 ...
 
 Comienzo de boot_alloc():
