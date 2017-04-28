@@ -44,3 +44,25 @@ page_alloc
 page2pa() toma un puntero a uno de los elementos de pages[] y devuelve la direccion fisica de la pagina correspondiente. Mientras que page2kva() retorna la direccion virtual de la pagina.
 
 
+
+Salidas
+----------
+```
+$ make qemu-nox
+Physical memory: 131072K available, base = 640K, extended = 130432K
+check_page_alloc() succeeded!
+check_page() succeeded!
+check_kern_pgdir() succeeded!
+check_page_installed_pgdir() succeeded!
+```
+
+```
+$ make grade
+running JOS: (1.1s) 
+  Physical page allocator: OK 
+  Page management: OK 
+  Kernel page directory: OK 
+  Page management 2: OK 
+Score: 70/70
+```
+
