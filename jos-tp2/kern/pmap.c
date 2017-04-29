@@ -86,6 +86,7 @@ static void *
 boot_alloc(uint32_t n)
 {
 	static char *nextfree;	// virtual address of next byte of free memory
+        extern char end[];
 	char *result;
 
 	// Initialize nextfree if this is the first time.
@@ -93,8 +94,7 @@ boot_alloc(uint32_t n)
 	// which points to the end of the kernel's bss segment:
 	// the first virtual address that the linker did *not* assign
 	// to any kernel code or global variables.
-	if (!nextfree) {
-		extern char end[];
+	if (!nextfree) {	
 		nextfree = ROUNDUP((char *) end, PGSIZE);
 	}
 
