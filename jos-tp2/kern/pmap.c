@@ -105,7 +105,7 @@ boot_alloc(uint32_t n)
 	// LAB 2: Your code here.
         result = nextfree;
         if (n > 0) {
-        	char * aux = ROUNDUP((char *) end, PGSIZE);
+            char * aux = ROUNDUP((char *) end, PGSIZE);
             //el ROUNDUP me da una cantidad de bytes multiplo del PGSIZE
             //donde entran los n bytes que quiero, se lo sumo a nextfree
             aux += ROUNDUP(n, PGSIZE);
@@ -292,9 +292,9 @@ page_init(void)
 	size_t i;
 
     //la 0 esta en uso, empezamos desde 1 hasta basemem
-    // TODO: cambiar el 0x400000 por alguna macro que nos diga el tamaño del kernel a saltear
+    // el kernel ocupa 256Mb = 0x10000000
 	for (int i = 1; i < npages; ++i) {
-		if ((i * PGSIZE >= IOPHYSMEM) && (i * PGSIZE < (EXTPHYSMEM + 0x400000))) {
+		if ((i * PGSIZE >= IOPHYSMEM) && (i * PGSIZE < (EXTPHYSMEM + 0x10000000))) {
 			continue;
 		}
 
