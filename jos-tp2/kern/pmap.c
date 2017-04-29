@@ -169,7 +169,7 @@ mem_init(void)
 	//////////////////////////////////////////////////////////////////////
 	// Make 'envs' point to an array of size 'NENV' of 'struct Env'.
 	// LAB 3: Your code here.
-        envs = (struct Env*) boot_alloc(NENV*sizeof(struct Env));    
+        //envs = (struct Env*) boot_alloc(NENV*sizeof(struct Env));    
         memset(pages, 0, NENV*sizeof(struct Env));        
         
 	//////////////////////////////////////////////////////////////////////
@@ -291,9 +291,8 @@ page_init(void)
 	size_t i;
 
     //la 0 esta en uso, empezamos desde 1 hasta basemem
-    // el kernel ocupa 256Mb = 0x10000000
 	for (int i = 1; i < npages; ++i) {
-		if ((i * PGSIZE >= IOPHYSMEM) && (i * PGSIZE < (EXTPHYSMEM + 0x10000000))) {
+		if ((i * PGSIZE >= IOPHYSMEM) && (i * PGSIZE < (EXTPHYSMEM + 0x400000))) {
 			continue;
 		}
 
