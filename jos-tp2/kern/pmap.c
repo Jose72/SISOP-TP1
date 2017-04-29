@@ -116,8 +116,7 @@ boot_alloc(uint32_t n)
             	nextfree = aux;
             }
         }
-
-	return NULL;
+	return result;
 }
 
 // Set up a two-level page table:
