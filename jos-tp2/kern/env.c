@@ -353,8 +353,8 @@ load_icode(struct Env *e, uint8_t *binary)
 	while(progHeader < lastProgHeader) {
 		if (progHeader->p_type == ELF_PROG_LOAD) {
 			region_alloc(e, (void *)progHeader->p_va, progHeader->p_memsz);
-			memcpy((void *)progHeader->p_va, binary + progHeader->p_offset, progHeader->p_filesz);
 			memset((void *)progHeader->p_va, 0, progHeader->p_memsz);
+			memcpy((void *)progHeader->p_va, binary + progHeader->p_offset, progHeader->p_filesz);
 		}
 
 		progHeader++;
@@ -381,6 +381,13 @@ void
 env_create(uint8_t *binary, enum EnvType type)
 {
 	// LAB 3: Your code here.
+	struct Env *newEnv;
+	int error = env_alloc(&newEnv,0);
+	if (error < 0) {
+	    panic("env_create: %e", err);
+	}
+	load_icode(newEnv, binary);
+	newEnv->env_type = type;
 }
 
 //
