@@ -342,11 +342,32 @@ load_icode(struct Env *e, uint8_t *binary)
 	//  What?  (See env_run() and env_pop_tf() below.)
 
 	// LAB 3: Your code here.
+	struct Elf *elfHeader = (struct Elf *)binary;
 
+	// Cambiar CR3 para poder utilizar memcpy()
+	lcr3(PADDR(e->env_pgdir));
+
+	struct Proghdr *progHeader = (struct Proghdr *)(elfHeader + elfHeader->e_phoff);
+	struct Proghdr *lastProgHeader = progHeader + elfHeader->e_phnum;
+
+	while(progHeader < lastProgHeader) {
+		if (progHeader->p_type == ELF_PROG_LOAD) {
+			region_alloc(e, (void *)progHeader->p_va, progHeader->p_memsz);
+			memcpy((void *)progHeader->p_va, binary + progHeader->p_offset, progHeader->p_filesz);
+			memset((void *)progHeader->p_va, 0, progHeader->p_memsz);
+		}
+
+		progHeader++;
+	}
+
+	// Restaurar CR3
+	lcr3(PADDR(kern_pgdir));
 	// Now map one page for the program's initial stack
 	// at virtual address USTACKTOP - PGSIZE.
 
 	// LAB 3: Your code here.
+	e->env_tf.tf_eip = elfHeader->e_entry;
+	region_alloc(e, (void *) (USTACKTOP - PGSIZE), PGSIZE);
 }
 
 //
