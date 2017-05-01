@@ -3,6 +3,16 @@ TP2: Procesos de usuario
 
 env_alloc
 ---------
+El metodo de obtencion del identificador de proceso son los siguientes pasos:
+1) Toma el identificador del ultimo proceso libre, para no repetir identificadores
+2) Al valor anterior le suma 1000 (1 << ENVGENSHIFT)
+3) Al resultado anterior le aplica: AND (NOT (cantidad de procesos que se pueden ejecutar)), de esta manera se asegura que a partir del identificador se pueda hallar el proceso dentro del array de procesos, mediante la macro ENVX
+4) En caso de ser negativo el valor, se le asigna 1000 (1 << ENVGENSHIFT)
+5) Al valor obtenido se le aplica: OR (diferencia entre la direccion del proceso libre y la lista de procesos no libres). _(por que???)_
+
+El id que toma el 1er proceso es el 1000, ya que inicialmente todos los identificadores estan en 0, y que la direccion del primer proceso libre coincide con la de la lista de procesos por el el primer elemento.
+
+*completar con el resto* 
 
 ...
 
