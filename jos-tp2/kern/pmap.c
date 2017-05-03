@@ -290,9 +290,10 @@ page_init(void)
 	// free pages!
 	size_t i;
 
-    //la 0 esta en uso, empezamos desde 1 hasta basemem
+        //la 0 esta en uso, empezamos desde 1 hasta basemem
+        //boot_alloc(0) nos da la primera dir virtual libre (PADDR para hacerla fisica)
 	for (int i = 1; i < npages; ++i) {
-		if ((i * PGSIZE >= IOPHYSMEM) && (i * PGSIZE < (EXTPHYSMEM + 0x400000))) {
+		if ((i * PGSIZE >= IOPHYSMEM) && (i * PGSIZE < (EXTPHYSMEM + PADDR(boot_alloc(0))))) {
 			continue;
 		}
 
