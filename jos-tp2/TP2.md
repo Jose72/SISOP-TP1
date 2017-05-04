@@ -3,17 +3,16 @@ TP2: Procesos de usuario
 
 env_alloc
 ---------
-El metodo de obtencion del identificador de proceso son los siguientes pasos:
-1) Toma el identificador del ultimo proceso libre, para no repetir identificadores
-2) Al valor anterior le suma 1000 (1 << ENVGENSHIFT)
+El método de obtención del identificador de proceso son los siguientes pasos:
+1) Toma el identificador del último proceso libre, para no repetir identificadores
+2) Al valor anterior le suma 0x1000 (1 << ENVGENSHIFT)
 3) Al resultado anterior le aplica: AND (NOT (cantidad de procesos que se pueden ejecutar)), de esta manera se asegura que a partir del identificador se pueda hallar el proceso dentro del array de procesos, mediante la macro ENVX
-4) En caso de ser negativo el valor, se le asigna 1000 (1 << ENVGENSHIFT)
-5) Al valor obtenido se le aplica: OR (diferencia entre la direccion del proceso libre y la lista de procesos no libres). _(por que???)_
+4) En caso de ser negativo el valor obtenido hasta el momento, se reinicia asignandole 0x1000 (1 << ENVGENSHIFT)
+5) Por último se le aplica: OR (diferencia entre la dirección del proceso libre y la lista de procesos no libres). 
 
-El id que toma el 1er proceso es el 1000, ya que inicialmente todos los identificadores estan en 0, y que la direccion del primer proceso libre coincide con la de la lista de procesos por el el primer elemento.
-
-*completar con el resto* 
-
+El id que toma el primer proceso es el 0x1000, ya que inicialmente todos los identificadores libres están en 0, y que la dirección del primer proceso libre coincide con la de la lista de procesos por el el primer elemento.
+El siguiente proceso tendra asignado el 0x1001, ya que inicialmente todos los identificadores libres están en 0, y la diferencia entre la dirección del proceso libre y la lista de procesos no libres es 1, ya que sólo fue asignado un proceso hasta ahora.
+De la misma manera se pueden obtener los siguientes: 0x1002, 0x1003, 0x1004.
 ...
 
 
@@ -32,5 +31,15 @@ env_pop_tf
 
 gdb_hello
 ---------
+> info registers
+EAX=00000000 EBX=f01b6000 ECX=000003d5 EDX=000003d5
+ESI=00010094 EDI=00000000 EBP=f0118fd8 ESP=f0118fbc
+EIP=f0102d8f EFL=00000082 [--S----] CPL=0 II=0 A20=1 SMM=0 HLT=0
+ES =0010 00000000 ffffffff 00cf9300 DPL=0 DS   [-WA]
+CS =0008 00000000 ffffffff 00cf9a00 DPL=0 CS32 [-R-]
+
+> p tf
+$1 = (struct Trapframe *) 0xf01b6000
+
 
 ...
