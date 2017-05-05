@@ -347,7 +347,7 @@ load_icode(struct Env *e, uint8_t *binary)
 	// Cambiar CR3 para poder utilizar memcpy()
 	lcr3(PADDR(e->env_pgdir));
 
-	struct Proghdr *progHeader = (struct Proghdr *)(elfHeader + elfHeader->e_phoff);
+	struct Proghdr *progHeader = (void*) elfHeader + elfHeader->e_phoff;
 	struct Proghdr *lastProgHeader = progHeader + elfHeader->e_phnum;
 
 	while(progHeader < lastProgHeader) {
@@ -360,14 +360,16 @@ load_icode(struct Env *e, uint8_t *binary)
 		progHeader++;
 	}
 
-	// Restaurar CR3
-	lcr3(PADDR(kern_pgdir));
 	// Now map one page for the program's initial stack
 	// at virtual address USTACKTOP - PGSIZE.
 
 	// LAB 3: Your code here.
 	e->env_tf.tf_eip = elfHeader->e_entry;
 	region_alloc(e, (void *) (USTACKTOP - PGSIZE), PGSIZE);
+
+	// Restaurar CR3
+	lcr3(PADDR(kern_pgdir));
+
 }
 
 //
