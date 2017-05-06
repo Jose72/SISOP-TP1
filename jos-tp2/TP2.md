@@ -35,8 +35,8 @@ Luego del mvl, %esp apunta al inicio del trap frame.
 2-
 Antes de iret %esp esta apuntando a tf_eip, entonces 8(%esp) estaria dentro del codigo del enviroment.
 
-...
-
+3-
+El nivel de privilegio esta seteado en el code segment register (CS), en los 2 bits mas bajos.
 
 gdb_hello
 ---------
