@@ -10,17 +10,21 @@ El método de obtención del identificador de proceso son los siguientes pasos:
 4) En caso de ser negativo el valor obtenido hasta el momento, se reinicia asignandole 0x1000 (1 << ENVGENSHIFT)
 5) Por último se le aplica: OR (diferencia entre la dirección del proceso libre y la lista de procesos no libres). 
 
+1-
 El id que toma el primer proceso es el 0x1000, ya que inicialmente todos los identificadores libres están en 0, y que la dirección del primer proceso libre coincide con la de la lista de procesos por el el primer elemento.
 El siguiente proceso tendra asignado el 0x1001, ya que inicialmente todos los identificadores libres están en 0, y la diferencia entre la dirección del proceso libre y la lista de procesos no libres es 1, ya que sólo fue asignado un proceso hasta ahora.
 De la misma manera se pueden obtener los siguientes: 0x1002, 0x1003, 0x1004.
-...
+
+2-
+En principio, el proceso liberado, asociado a envs[630], tiene el identificador 0x1275. Al finalizar el paso 3 tenemos el valor 0x275, por lo que el identificador final para el nuevo proceso será 0x275.
+
+????? Revisar!!!
 
 
 env_init_percpu
 ---------------
 La función lgdt escribe hasta un maximo de 6 bytes, dependiendo del tamaño del operando que recive, si son 16 bits movera 5 bytes, si el operando es de 32 bits seran 6 bytes.
 Estos bytes son cargados en el GDT register (o GDTR) , un registro de 48 bits que tiene informacion de la Global Descriptor Table (GDT). Los 16 bits mas bajos indican el tamaño de la tabla, mientras que los otros 32 bits dan su direccion en memoria.
-...
 
 
 env_pop_tf
@@ -31,15 +35,4 @@ env_pop_tf
 
 gdb_hello
 ---------
-> info registers
-EAX=00000000 EBX=f01b6000 ECX=000003d5 EDX=000003d5
-ESI=00010094 EDI=00000000 EBP=f0118fd8 ESP=f0118fbc
-EIP=f0102d8f EFL=00000082 [--S----] CPL=0 II=0 A20=1 SMM=0 HLT=0
-ES =0010 00000000 ffffffff 00cf9300 DPL=0 DS   [-WA]
-CS =0008 00000000 ffffffff 00cf9a00 DPL=0 CS32 [-R-]
-
-> p tf
-$1 = (struct Trapframe *) 0xf01b6000
-
-
 ...
