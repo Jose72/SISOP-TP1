@@ -30,7 +30,7 @@ Estos bytes son cargados en el GDT register (o GDTR) , un registro de 48 bits qu
 env_pop_tf
 ----------
 1-
-Luego del mvl, %esp apunta al inicio del trap frame.
+Luego del movl, %esp apunta al inicio del trap frame.
 
 2-
 Antes de iret %esp esta apuntando a tf_eip, entonces 8(%esp) estaria dentro del codigo del enviroment.
