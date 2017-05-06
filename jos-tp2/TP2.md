@@ -31,6 +31,7 @@ env_pop_tf
 ----------
 1-
 El stack pointer de env_pop_tf
+
 2-
 Antes de iret %esp sigue apuntando al stack pointer de env_pop_tf, luego de
 
