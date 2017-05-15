@@ -62,7 +62,7 @@ void
 trap_init(void)
 {
 	extern struct Segdesc gdt[];
-        extern uint32_t handlers[];
+        extern uint32_t handlers[]; //tabla handlers
 
 	// LAB 3: Your code here.
        
@@ -70,7 +70,7 @@ trap_init(void)
                 SETGATE(idt[i], 0, GD_KT, handlers[i], 0);
         }
         
-        //breakpoint
+        //breakpoint con privilegio 3
         SETGATE(idt[2], 0, GD_KT, handlers[2], 3);
 
 	// Per-CPU setup
@@ -150,7 +150,17 @@ trap_dispatch(struct Trapframe *tf)
 {
 	// Handle processor exceptions.
 	// LAB 3: Your code here.
+        
+        if (tf->tf_trapno == T_BRKPT) {
+                monitor(tf);
+                return;
+        }
 
+        if (tf->tf_trapno == T_PGFLT) {
+                page_fault_handler(tf);
+                return;
+        }
+        
 	// Unexpected trap: The user process or the kernel has a bug.
 	print_trapframe(tf);
 	if (tf->tf_cs == GD_KT)
