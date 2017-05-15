@@ -68,6 +68,7 @@ TRAPHANDLER(handl17, 17)
 TRAPHANDLER_NOEC(handl18, 18)
 TRAPHANDLER_NOEC(handl19, 19)
 
+TRAPHANDLER_NOEC(handl48, 48)
 
 /*
  * Lab 3: Your code here for _alltraps
@@ -109,4 +110,5 @@ handlers:
 	.long handl17
 	.long handl18
 	.long handl19
+	.long handl48
 

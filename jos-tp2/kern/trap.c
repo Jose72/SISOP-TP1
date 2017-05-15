@@ -74,8 +74,11 @@ trap_init(void)
             SETGATE(idt[i], 0, GD_KT, handlers[i], 0);
         }
         
-        //breakpoint con privilegio 3 == T_BRKPT
-        SETGATE(idt[T_BRKPT], 0, GD_KT, handlers[T_BRKPT], T_BRKPT);
+        //breakpoint con privilegio 3
+        SETGATE(idt[T_BRKPT], 0, GD_KT, handlers[T_BRKPT], 3);
+
+        //syscall con privilegio 3
+        SETGATE(idt[T_SYSCALL], 0, GD_KT, handlers[T_SYSCALL], 3);
 
 	// Per-CPU setup
 	trap_init_percpu();
@@ -163,6 +166,12 @@ trap_dispatch(struct Trapframe *tf)
         if (tf->tf_trapno == T_PGFLT) {
                 page_fault_handler(tf);
                 return;
+        }
+
+        if (tf->tf_trapno == T_SYSCALL) {
+        	DX, CX, BX, DI, SI.
+        	syscall(tf->tf_regs.reg_eax, tf->tf_regs.reg_edx, tf->tf_regs.reg_ecx,
+        		tf->tf_regs.reg_ebx, tf->tf_regs.reg_edi, tf->tf_regs.reg_esi);
         }
         
 	// Unexpected trap: The user process or the kernel has a bug.
