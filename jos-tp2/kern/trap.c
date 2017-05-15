@@ -67,11 +67,15 @@ trap_init(void)
 	// LAB 3: Your code here.
        
         for(int i = 0; i < 256; i++){
-                SETGATE(idt[i], 0, GD_KT, handlers[i], 0);
+        	if (i == 15) {
+        		// Trap reserved
+        		continue;
+        	}
+            SETGATE(idt[i], 0, GD_KT, handlers[i], 0);
         }
         
-        //breakpoint con privilegio 3
-        SETGATE(idt[2], 0, GD_KT, handlers[2], 3);
+        //breakpoint con privilegio 3 == T_BRKPT
+        SETGATE(idt[T_BRKPT], 0, GD_KT, handlers[T_BRKPT], T_BRKPT);
 
 	// Per-CPU setup
 	trap_init_percpu();
