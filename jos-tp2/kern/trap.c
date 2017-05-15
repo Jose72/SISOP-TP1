@@ -62,8 +62,16 @@ void
 trap_init(void)
 {
 	extern struct Segdesc gdt[];
+        extern uint32_t handlers[];
 
 	// LAB 3: Your code here.
+       
+        for(int i = 0; i < 256; i++){
+                SETGATE(idt[i], 0, GD_KT, handlers[i], 0);
+        }
+        
+        //breakpoint
+        SETGATE(idt[2], 0, GD_KT, handlers[2], 3);
 
 	// Per-CPU setup
 	trap_init_percpu();

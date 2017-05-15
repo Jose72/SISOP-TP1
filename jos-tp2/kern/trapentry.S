@@ -46,26 +46,27 @@
 /*
  * Lab 3: Your code here for generating entry points for the different traps.
  */
-TRAPHANDLER_NOEC(thdlr0, 0)
-TRAPHANDLER_NOEC(thdlr1, 1)
-TRAPHANDLER_NOEC(thdlr2, 2)
-TRAPHANDLER_NOEC(thdlr3, 3)
-TRAPHANDLER_NOEC(thdlr4, 4)
-TRAPHANDLER_NOEC(thdlr5, 5)
-TRAPHANDLER_NOEC(thdlr6, 6)
-TRAPHANDLER_NOEC(thdlr7, 7)
-TRAPHANDLER(thdlr8, 8)
 
-TRAPHANDLER(thdlr10, 10)
-TRAPHANDLER(thdlr11, 11)
-TRAPHANDLER(thdlr12, 12)
-TRAPHANDLER(thdlr13, 13)
-TRAPHANDLER(thdlr14, 14)
-
-TRAPHANDLER_NOEC(thdlr16, 16)
-TRAPHANDLER(thdlr17, 17)
-TRAPHANDLER_NOEC(thdlr18, 18)
-TRAPHANDLER_NOEC(thdlr19, 19)
+TRAPHANDLER_NOEC(handl0, 0)
+TRAPHANDLER_NOEC(handl1, 1)
+TRAPHANDLER_NOEC(handl2, 2)
+TRAPHANDLER_NOEC(handl3, 3)
+TRAPHANDLER_NOEC(handl4, 4)
+TRAPHANDLER_NOEC(handl5, 5)
+TRAPHANDLER_NOEC(handl6, 6)
+TRAPHANDLER_NOEC(handl7, 7)
+TRAPHANDLER(handl8, 8)
+TRAPHANDLER_NOEC(handl9, 9)
+TRAPHANDLER(handl10, 10)
+TRAPHANDLER(handl11, 11)
+TRAPHANDLER(handl12, 12)
+TRAPHANDLER(handl13, 13)
+TRAPHANDLER(handl14, 14)
+TRAPHANDLER_NOEC(handl15, 15)
+TRAPHANDLER_NOEC(handl16, 16)
+TRAPHANDLER(handl17, 17)
+TRAPHANDLER_NOEC(handl18, 18)
+TRAPHANDLER_NOEC(handl19, 19)
 
 
 /*
@@ -78,9 +79,34 @@ _alltraps:
         pushl %es
 	pushal
 
-	movw $GD_KD, %eax
+	movl $GD_KD, %eax
 	movw %ax, %ds
 	movw %ax, %es 
 
         pushl %esp  //trap frame
         call trap
+
+.data
+.globl handlers
+handlers:
+	.long handl0
+        .long handl1
+	.long handl2
+	.long handl3
+	.long handl4
+	.long handl5
+	.long handl6
+	.long handl7
+	.long handl8
+	.long handl9
+	.long handl10
+	.long handl11
+	.long handl12
+	.long handl13
+	.long handl14
+	.long handl15
+	.long handl16
+	.long handl17
+	.long handl18
+	.long handl19
+
