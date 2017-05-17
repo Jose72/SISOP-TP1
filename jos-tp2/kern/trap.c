@@ -67,7 +67,7 @@ trap_init(void)
 	// LAB 3: Your code here.
        
         for(int i = 0; i < 256; i++){
-        	if (i == 15) {
+        	if (i == 15 || i == 2) {
         		// Trap reserved
         		continue;
         	}
@@ -169,8 +169,9 @@ trap_dispatch(struct Trapframe *tf)
         }
 
         if (tf->tf_trapno == T_SYSCALL) {
-        	syscall(tf->tf_regs.reg_eax, tf->tf_regs.reg_edx, tf->tf_regs.reg_ecx,
-        		tf->tf_regs.reg_ebx, tf->tf_regs.reg_edi, tf->tf_regs.reg_esi);
+                tf->tf_regs.reg_eax = 
+                        syscall(tf->tf_regs.reg_eax, tf->tf_regs.reg_edx, 
+                        tf->tf_regs.reg_ecx, tf->tf_regs.reg_ebx, tf->tf_regs.reg_edi, tf->tf_regs.reg_esi);
         	return;
         }
         
@@ -234,6 +235,9 @@ page_fault_handler(struct Trapframe *tf)
 	// Handle kernel-mode page faults.
 
 	// LAB 3: Your code here.
+        //chequeo los 2 bits mas bajos de tf_cs
+        if ((tf->tf_cs & 0x3) == 0) panic("Kernel page fault!");
+
 
 	// We've already handled kernel-mode exceptions, so if we get here,
 	// the page fault happened in user mode.
