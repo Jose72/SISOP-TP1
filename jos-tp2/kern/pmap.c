@@ -105,12 +105,12 @@ boot_alloc(uint32_t n)
 	// LAB 2: Your code here.
         result = nextfree;
         if (n > 0) {
-            char * aux = ROUNDUP((char *) end, PGSIZE);
+            char * aux = nextfree;
             //el ROUNDUP me da una cantidad de bytes multiplo del PGSIZE
             //donde entran los n bytes que quiero, se lo sumo a nextfree
             aux += ROUNDUP(n, PGSIZE);
-
-            if (PGNUM(aux) > npages * PGSIZE) {
+            //limite 4Mb del kernel
+            if (ROUNDUP(n, PGSIZE) > 0x400000) {
                 panic("boot_alloc: Out of memory\n");
             } else {
             	nextfree = aux;
@@ -292,6 +292,7 @@ page_init(void)
 
         //la 0 esta en uso, empezamos desde 1 hasta basemem
         //boot_alloc(0) nos da la primera dir virtual libre (PADDR para hacerla fisica)
+    
 	for (int i = 1; i < npages; ++i) {
 		if ((i * PGSIZE >= IOPHYSMEM) && (i * PGSIZE < (EXTPHYSMEM + PADDR(boot_alloc(0))))) {
 			continue;
@@ -301,6 +302,7 @@ page_init(void)
 		pages[i].pp_link = page_free_list;
 		page_free_list = &pages[i];
 	}
+
 }
 
 //
