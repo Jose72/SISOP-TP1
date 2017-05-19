@@ -145,9 +145,22 @@ El programa trata de invocar a la interrupcion 14 (page fault), pero no se puede
 
 user_evilhello
 --------------
+Al correr el primer caso
 
-AssertionError: ...
-         for Incoming TRAP frame at 0xefffffbc
+```
+6828 decimal is 15254 octal!
+Physical memory: 131072K available, base = 640K, extended = 130432K
+check_page_alloc() succeeded!
+check_page() succeeded!
+check_kern_pgdir() succeeded!
+check_page_installed_pgdir() succeeded!
+[00000000] new env 00001000
+Incoming TRAP frame at 0xefffffbc
+f�rIncoming TRAP frame at 0xefffffbc
+[00001000] exiting gracefully
+[00001000] free env 00001000
+Destroyed the only environment - nothing more to do!
+```
          
 Al correr el segundo caso se genera un page fault
 ```
