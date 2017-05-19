@@ -137,9 +137,48 @@ El parametro istrap define si se trata de un trap (1) o una interrupcion (0).
 La diferencia es que en el caso de una interrupcion se resetea el IF (interrup flag) para que otras interrupciones no interfieran con el handler actual.
 
 3-
+En el primer caso se le pasaba a sys_cputs el kernel entry point, en el segundo se crea una varible char donde se guarda el primer caracter del kernel entry point, y se le pasa la direccion de ese char. Ademas en el primer caso el size pasado es de 100, en el segundo es de 1.
+3-
 El programa trata de invocar a la interrupcion 14 (page fault), pero no se puede invocar desde el nivel usuario, por lo tanto se genera una exception de tipo General Protection (se viola el nivel de privilegio).
 
 
 
 user_evilhello
 --------------
+
+AssertionError: ...
+         for Incoming TRAP frame at 0xefffffbc
+         
+Al correr el segundo caso se genera un page fault
+```
+6828 decimal is 15254 octal!
+Physical memory: 131072K available, base = 640K, extended = 130432K
+check_page_alloc() succeeded!
+check_page() succeeded!
+check_kern_pgdir() succeeded!
+check_page_installed_pgdir() succeeded!
+[00000000] new env 00001000
+Incoming TRAP frame at 0xefffffbc
+[00001000] user fault va f010000c ip 00800039
+TRAP frame at 0xf01b7000
+  edi  0x00000000
+  esi  0x00000000
+  ebp  0xeebfdfd0
+  oesp 0xefffffdc
+  ebx  0x00000000
+  edx  0x00000000
+  ecx  0x00000000
+  eax  0x00000000
+  es   0x----0023
+  ds   0x----0023
+  trap 0x0000000e Page Fault
+  cr2  0xf010000c
+  err  0x00000005 [user, read, protection]
+  eip  0x00800039
+  cs   0x----001b
+  flag 0x00000082
+  esp  0xeebfdfb0
+  ss   0x----0023
+[00001000] free env 00001000
+Destroyed the only environment - nothing more to do!
+```
