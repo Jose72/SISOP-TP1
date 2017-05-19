@@ -21,9 +21,7 @@ sys_cputs(const char *s, size_t len)
 	// Destroy the environment if not.
 
 	// LAB 3: Your code here.
-	struct Env *e;
-	envid2env(curenv->env_id, &e, 1);
-	user_mem_assert(e, s, len, PTE_U);
+	user_mem_assert(curenv, s, len, PTE_U);
 	
 	// Print the string supplied by the user.
 	cprintf("%.*s", len, s);
