@@ -134,7 +134,10 @@ Si se usara solo la primera, en el caso de que la cpu no haya pusheado el codigo
 
 2-
 El parametro istrap define si se trata de un trap (1) o una interrupcion (0).
-La diferencia es que en el caso de uan interrupcion se modifica el IF (interup flag) para que otras interrupciones no interfieran con el handler actual.
+La diferencia es que en el caso de una interrupcion se resetea el IF (interrup flag) para que otras interrupciones no interfieran con el handler actual.
+
+3-
+El programa trata de invocar a la interrupcion 14 (page fault), pero no se puede invocar desde el nivel usuario, por lo tanto se genera una exception de tipo General Protection (se viola el nivel de privilegio).
 
 
 
