@@ -126,6 +126,7 @@ EIP=0000e05b EFL=00000002 [-------] CPL=0 II=0 A20=1 SMM=0 HLT=0
 ES =0000 00000000 0000ffff 00009300
 CS =f000 000f0000 0000ffff 00009b00
 
+
 kern_idt
 --------
 1-
@@ -137,15 +138,17 @@ El parametro istrap define si se trata de un trap (1) o una interrupcion (0).
 La diferencia es que en el caso de una interrupcion se resetea el IF (interrup flag) para que otras interrupciones no interfieran con el handler actual.
 
 3-
-En el primer caso se le pasaba a sys_cputs el kernel entry point, en el segundo se crea una varible char donde se guarda el primer caracter del kernel entry point, y se le pasa la direccion de ese char. Ademas en el primer caso el size pasado es de 100, en el segundo es de 1.
-3-
 El programa trata de invocar a la interrupcion 14 (page fault), pero no se puede invocar desde el nivel usuario, por lo tanto se genera una exception de tipo General Protection (se viola el nivel de privilegio).
-
 
 
 user_evilhello
 --------------
-Al correr el primer caso
+
+1-
+En el primer caso se le pasaba a sys_cputs la direccion del kernel entry point para que imprima el primer byte, en el segundo se crea una varible char donde se guarda el primer caracter del kernel entry point, y se le pasa la direccion de ese char.
+
+
+Al correr el primer caso, se imprime el primer caracter del kernel entry point
 
 ```
 6828 decimal is 15254 octal!
@@ -156,7 +159,7 @@ check_kern_pgdir() succeeded!
 check_page_installed_pgdir() succeeded!
 [00000000] new env 00001000
 Incoming TRAP frame at 0xefffffbc
-f�rIncoming TRAP frame at 0xefffffbc
+fIncoming TRAP frame at 0xefffffbc
 [00001000] exiting gracefully
 [00001000] free env 00001000
 Destroyed the only environment - nothing more to do!
@@ -195,3 +198,5 @@ TRAP frame at 0xf01b7000
 [00001000] free env 00001000
 Destroyed the only environment - nothing more to do!
 ```
+
+En el primer caso, dentro de sys_cputs no hay ningun chequeo sobre los permisos de lectura (lo implementamos nosotros en la siguiente tarea) por lo tanto imprime le caracter normalmente. En el segundo caso cuando se trata de copiar el caracter el la varable auxiliar char, se genera una excepcion por intentar leer en la memoria del kernel en modo usuario.
