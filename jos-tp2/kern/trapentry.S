@@ -47,28 +47,26 @@
  * Lab 3: Your code here for generating entry points for the different traps.
  */
 
-TRAPHANDLER_NOEC(handl0, 0)
-TRAPHANDLER_NOEC(handl1, 1)
-TRAPHANDLER_NOEC(handl2, 2)
-TRAPHANDLER_NOEC(handl3, 3)
-TRAPHANDLER_NOEC(handl4, 4)
-TRAPHANDLER_NOEC(handl5, 5)
-TRAPHANDLER_NOEC(handl6, 6)
-TRAPHANDLER_NOEC(handl7, 7)
-TRAPHANDLER(handl8, 8)
-TRAPHANDLER_NOEC(handl9, 9)
-TRAPHANDLER(handl10, 10)
-TRAPHANDLER(handl11, 11)
-TRAPHANDLER(handl12, 12)
-TRAPHANDLER(handl13, 13)
-TRAPHANDLER(handl14, 14)
-TRAPHANDLER_NOEC(handl15, 15)
-TRAPHANDLER_NOEC(handl16, 16)
-TRAPHANDLER(handl17, 17)
-TRAPHANDLER_NOEC(handl18, 18)
-TRAPHANDLER_NOEC(handl19, 19)
+TRAPHANDLER_NOEC(divzero, 0)
+TRAPHANDLER_NOEC(debug, 1)
+TRAPHANDLER_NOEC(nmi, 2)
+TRAPHANDLER_NOEC(brkpt, 3)
+TRAPHANDLER_NOEC(oflow, 4)
+TRAPHANDLER_NOEC(bound, 5)
+TRAPHANDLER_NOEC(illop, 6)
+TRAPHANDLER_NOEC(device, 7)
+TRAPHANDLER(dblflt, 8)
+TRAPHANDLER_NOEC(tss, 10)
+TRAPHANDLER(segnp, 11)
+TRAPHANDLER(stack, 12)
+TRAPHANDLER(gpflt, 13)
+TRAPHANDLER(pgflt, 14)
+TRAPHANDLER_NOEC(fperr, 16)
+TRAPHANDLER(align, 17)
+TRAPHANDLER_NOEC(mchk, 18)
+TRAPHANDLER_NOEC(simderr, 19)
 
-TRAPHANDLER_NOEC(handl48, 48)
+handl48: TRAPHANDLER_NOEC(syscll, 48)
 
 /*
  * Lab 3: Your code here for _alltraps
@@ -87,28 +85,4 @@ _alltraps:
         pushl %esp  //trap frame
         call trap
 
-.data
-.globl handlers
-handlers:
-	.long handl0
-        .long handl1
-	.long handl2
-	.long handl3
-	.long handl4
-	.long handl5
-	.long handl6
-	.long handl7
-	.long handl8
-	.long handl9
-	.long handl10
-	.long handl11
-	.long handl12
-	.long handl13
-	.long handl14
-	.long handl15
-	.long handl16
-	.long handl17
-	.long handl18
-	.long handl19
-	.long handl48
 

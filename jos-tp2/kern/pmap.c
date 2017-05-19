@@ -115,7 +115,7 @@ boot_alloc(uint32_t n)
             } else {
             	nextfree = aux;
             }
-        }
+}
 	return result;
 }
 
