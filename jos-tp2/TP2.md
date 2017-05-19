@@ -128,6 +128,15 @@ CS =f000 000f0000 0000ffff 00009b00
 
 kern_idt
 --------
+1-
+TRAPHANDLER se utiliza cuando es la cpu quien pushea el codigo de error, mientras que con TRAPHANDLER_NOEC se pushea un 0.
+Si se usara solo la primera, en el caso de que la cpu no haya pusheado el codigo de error, cuando se quiera hacer un pop del mismo se estaria sacando lo que este guardado antes, generando errores.
+
+2-
+El parametro istrap define si se trata de un trap (1) o una interrupcion (0).
+La diferencia es que en el caso de uan interrupcion se modifica el IF (interup flag) para que otras interrupciones no interfieran con el handler actual.
+
+
 
 user_evilhello
 --------------
