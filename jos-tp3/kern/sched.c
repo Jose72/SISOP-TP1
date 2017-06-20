@@ -29,6 +29,37 @@ sched_yield(void)
 	// below to halt the cpu.
 
 	// LAB 4: Your code here.
+	struct Env *nextEnv = NULL;
+	int envIndex = 0;
+
+	if (curenv) {
+		envIndex = ENVX(curenv->env_id) + 1; // Begin the loop from the next env
+	}
+
+	// TODO: fix codigo repetido
+	for (int i = envIndex; i < NENV; i++) {
+		struct Env *actualEnv = &envs[i];
+		if (actualEnv->env_status == ENV_RUNNABLE) {
+			nextEnv = actualEnv;
+			break;
+		}
+	}
+
+	if (!nextEnv) {
+		for (int i = 0; i < envIndex; i++) {
+			struct Env *actualEnv = &envs[i];
+			if (actualEnv->env_status == ENV_RUNNABLE) {
+				nextEnv = actualEnv;
+				break;
+			}
+		}
+	}
+
+	if (nextEnv) {
+		env_run(nextEnv);
+	} else if (curenv && curenv->env_status == ENV_RUNNING) {
+		env_run(curenv);
+	}
 
 	// sched_halt never returns
 	sched_halt();
