@@ -62,23 +62,55 @@ void
 trap_init(void)
 {
 	extern struct Segdesc gdt[];
-        extern uint32_t handlers[]; //tabla handlers
+
+        extern void divzero();
+	extern void debug();
+	extern void nmi();
+	extern void brkpt();
+	extern void oflow();
+	extern void bound();
+	extern void illop();
+	extern void device();
+	extern void dblflt();
+	extern void tss();
+	extern void segnp();
+	extern void stack();
+	extern void gpflt();
+	extern void pgflt();
+	extern void fperr();
+	extern void align();
+	extern void mchk();
+	extern void simderr();
+	extern void syscll();
 
 	// LAB 3: Your code here.
-       
-        for(int i = 0; i < 256; i++){
-        	if (i == 15 || i == 2) {
-        		// Trap reserved
-        		continue;
-        	}
-            SETGATE(idt[i], 0, GD_KT, handlers[i], 0);
-        }
+
+        SETGATE(idt[0], 0, GD_KT, divzero, 0); 
+        SETGATE(idt[1], 0, GD_KT, debug, 0); 
+        SETGATE(idt[2], 0, GD_KT, nmi, 0); 
+        SETGATE(idt[4], 0, GD_KT, oflow, 0);
+        SETGATE(idt[5], 0, GD_KT, bound, 0);
+        SETGATE(idt[6], 0, GD_KT, illop, 0);
+        SETGATE(idt[7], 0, GD_KT, device, 0);
+        SETGATE(idt[8], 0, GD_KT, dblflt, 0);
+        //9 reservado
+        SETGATE(idt[10], 0, GD_KT, tss, 0);
+        SETGATE(idt[11], 0, GD_KT, segnp, 0);
+        SETGATE(idt[12], 0, GD_KT, stack, 0);
+        SETGATE(idt[13], 0, GD_KT, gpflt, 0);
+        SETGATE(idt[14], 0, GD_KT, pgflt, 0);
+        //15 reservado
+        SETGATE(idt[16], 0, GD_KT, fperr, 0);
+        SETGATE(idt[17], 0, GD_KT, align, 0);
+        SETGATE(idt[18], 0, GD_KT, mchk, 0);
+        SETGATE(idt[19], 0, GD_KT, simderr, 0);
         
+
         //breakpoint con privilegio 3
-        SETGATE(idt[T_BRKPT], 0, GD_KT, handlers[T_BRKPT], 3);
+        SETGATE(idt[T_BRKPT], 0, GD_KT, brkpt, 3);
 
         //syscall con privilegio 3
-        SETGATE(idt[T_SYSCALL], 0, GD_KT, handlers[T_SYSCALL], 3);
+        SETGATE(idt[T_SYSCALL], 0, GD_KT, syscll, 3);
 
 	// Per-CPU setup
 	trap_init_percpu();

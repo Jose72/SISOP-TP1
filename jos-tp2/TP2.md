@@ -126,3 +126,77 @@ EIP=0000e05b EFL=00000002 [-------] CPL=0 II=0 A20=1 SMM=0 HLT=0
 ES =0000 00000000 0000ffff 00009300
 CS =f000 000f0000 0000ffff 00009b00
 
+
+kern_idt
+--------
+1-
+TRAPHANDLER se utiliza cuando es la cpu quien pushea el codigo de error, mientras que con TRAPHANDLER_NOEC se pushea un 0.
+Si se usara solo la primera, en el caso de que la cpu no haya pusheado el codigo de error, cuando se quiera hacer un pop del mismo se estaria sacando lo que este guardado antes, generando errores.
+
+2-
+El parametro istrap define si se trata de un trap (1) o una interrupcion (0).
+La diferencia es que en el caso de una interrupcion se resetea el IF (interrup flag) para que otras interrupciones no interfieran con el handler actual.
+
+3-
+El programa trata de invocar a la interrupcion 14 (page fault), pero no se puede invocar desde el nivel usuario, por lo tanto se genera una exception de tipo General Protection (se viola el nivel de privilegio).
+
+
+user_evilhello
+--------------
+
+1-
+En el primer caso se le pasaba a sys_cputs la direccion del kernel entry point para que imprima el primer byte, en el segundo se crea una varible char donde se guarda el primer caracter del kernel entry point, y se le pasa la direccion de ese char.
+
+
+Al correr el primer caso, se imprime el primer caracter del kernel entry point
+
+```
+6828 decimal is 15254 octal!
+Physical memory: 131072K available, base = 640K, extended = 130432K
+check_page_alloc() succeeded!
+check_page() succeeded!
+check_kern_pgdir() succeeded!
+check_page_installed_pgdir() succeeded!
+[00000000] new env 00001000
+Incoming TRAP frame at 0xefffffbc
+fIncoming TRAP frame at 0xefffffbc
+[00001000] exiting gracefully
+[00001000] free env 00001000
+Destroyed the only environment - nothing more to do!
+```
+         
+Al correr el segundo caso se genera un page fault
+```
+6828 decimal is 15254 octal!
+Physical memory: 131072K available, base = 640K, extended = 130432K
+check_page_alloc() succeeded!
+check_page() succeeded!
+check_kern_pgdir() succeeded!
+check_page_installed_pgdir() succeeded!
+[00000000] new env 00001000
+Incoming TRAP frame at 0xefffffbc
+[00001000] user fault va f010000c ip 00800039
+TRAP frame at 0xf01b7000
+  edi  0x00000000
+  esi  0x00000000
+  ebp  0xeebfdfd0
+  oesp 0xefffffdc
+  ebx  0x00000000
+  edx  0x00000000
+  ecx  0x00000000
+  eax  0x00000000
+  es   0x----0023
+  ds   0x----0023
+  trap 0x0000000e Page Fault
+  cr2  0xf010000c
+  err  0x00000005 [user, read, protection]
+  eip  0x00800039
+  cs   0x----001b
+  flag 0x00000082
+  esp  0xeebfdfb0
+  ss   0x----0023
+[00001000] free env 00001000
+Destroyed the only environment - nothing more to do!
+```
+
+En el primer caso, dentro de sys_cputs no hay ningun chequeo sobre los permisos de lectura (lo implementamos nosotros en la siguiente tarea) por lo tanto imprime le caracter normalmente. En el segundo caso cuando se trata de copiar el caracter el la varable auxiliar char, se genera una excepcion por intentar leer en la memoria del kernel en modo usuario.
