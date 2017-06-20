@@ -648,22 +648,22 @@ user_mem_check(struct Env *env, const void *va, size_t len, int perm)
 {
 	// LAB 3: Your code here.
 
-        uintptr_t start = ROUNDDOWN((uintptr_t) va, PGSIZE);
-        uintptr_t end = ROUNDDOWN((uintptr_t) (va + len), PGSIZE);
-        int perms = perm & PTE_P;
-        for (uint32_t i = start ; i < end; i += PGSIZE){
-                //chequeo si no esta por deajo de ULIM
-                if (i >= ULIM ) {
-                        user_mem_check_addr = i;
+        uint32_t start = ROUNDDOWN((uint32_t) va, PGSIZE);
+        uint32_t end = ROUNDUP((uint32_t) (va + len), PGSIZE);
+
+        while (start < end){
+                pte_t *pte_p = pgdir_walk(env->env_pgdir, (const void *) start, 0);
+
+                if (start >= ULIM || ! pte_p || !(*pte_p & (perm | PTE_P))) {
+                        user_mem_check_addr = start;
+                        if (user_mem_check_addr < (uint32_t) va) {
+                                user_mem_check_addr = (uint32_t) va;
+                        }
                         return -E_FAULT;
                 }
-                //chequeo si tiene permisos
-                pte_t *pte_p = pgdir_walk(env->env_pgdir, (void*)i, 0);
-                if (!pte_p || !(*pte_p & perms)){
-                         user_mem_check_addr = i;
-                         return -E_FAULT;
-                }
+		start+= PGSIZE;
         }
+
 	return 0;
 }
 
