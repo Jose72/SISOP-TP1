@@ -69,9 +69,7 @@ void
 trap_init(void)
 {
 	extern struct Segdesc gdt[];
-/*	
-	ESTO TAMBIEN????
-*/
+
         extern void divzero();
 	extern void debug();
 	extern void nmi();
