@@ -636,7 +636,21 @@ mmio_map_region(physaddr_t pa, size_t size)
 	// Hint: The staff solution uses boot_map_region.
 	//
 	// Your code here:
-	panic("mmio_map_region not implemented");
+
+	size_t pageSize = ROUNDUP(pa + size, PGSIZE);
+	pa = ROUNDDOWN(pa, PGSIZE);
+	pageSize -= pa;
+	
+	if (base + pageSize >= MMIOLIM) {
+		panic("mmio_map_region out of memory");
+	}
+
+	boot_map_region(kern_pgdir, base, pageSize, pa, PTE_PCD | PTE_PWT | PTE_W);
+
+	// Update MMIOBASE
+	base += pageSize;
+
+	return (void *)(base - pageSize);
 }
 
 static uintptr_t user_mem_check_addr;
