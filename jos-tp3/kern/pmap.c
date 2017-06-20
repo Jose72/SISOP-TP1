@@ -165,15 +165,15 @@ mem_init(void)
 	// to initialize all fields of each struct PageInfo to 0.
 	// Your code goes here:
 
-        //mem_init_pages+++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        pages = (struct PageInfo*) boot_alloc(npages*sizeof(struct PageInfo));    
-        memset(pages, 0, npages*sizeof(struct PageInfo));
+    //mem_init_pages+++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    pages = (struct PageInfo*) boot_alloc(npages*sizeof(struct PageInfo));    
+    memset(pages, 0, npages*sizeof(struct PageInfo));
 
 	//////////////////////////////////////////////////////////////////////
 	// Make 'envs' point to an array of size 'NENV' of 'struct Env'.
 	// LAB 3: Your code here.
-        envs = (struct Env*) boot_alloc(NENV*sizeof(struct Env));    
-        memset(envs, 0, NENV*sizeof(struct Env));        
+    envs = (struct Env*) boot_alloc(NENV*sizeof(struct Env));    
+    memset(envs, 0, NENV*sizeof(struct Env));        
 
 	//////////////////////////////////////////////////////////////////////
 	// Now that we've allocated the initial kernel data structures, we set
@@ -208,7 +208,7 @@ mem_init(void)
 	//    - envs itself -- kernel RW, user NONE
 	// LAB 3: Your code here.
 
-        boot_map_region(kern_pgdir, UENVS, PTSIZE, PADDR(envs), PTE_U);
+    boot_map_region(kern_pgdir, UENVS, PTSIZE, PADDR(envs), PTE_U);
 
 	//////////////////////////////////////////////////////////////////////
 	// Use the physical memory that 'bootstack' refers to as the kernel
@@ -285,6 +285,15 @@ mem_init_mp(void)
 	//     Permissions: kernel RW, user NONE
 	//
 	// LAB 4: Your code here:
+
+	uintptr_t kernelStackSize = KSTACKTOP - KSTKSIZE;
+	uintptr_t invalidMemoryAddress = KSTKSIZE + KSTKGAP;
+
+	for (int i = 0; i < NCPU; i++) {
+		uintptr_t startingVa = kernelStackSize - i *  invalidMemoryAddress;
+		boot_map_region(kern_pgdir, startingVa, KSTKSIZE, PADDR(percpu_kstacks[i]),PTE_W);
+
+	}
 
 }
 
