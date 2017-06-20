@@ -335,11 +335,18 @@ page_init(void)
 	// free pages!
 	size_t i;
 
-        //la 0 esta en uso, empezamos desde 1 hasta basemem
-        //boot_alloc(0) nos da la primera dir virtual libre (PADDR para hacerla fisica)
+    //la 0 esta en uso, empezamos desde 1 hasta basemem
+    //boot_alloc(0) nos da la primera dir virtual libre (PADDR para hacerla fisica)
     
+    // Bonus: exigir como pre-condición que MPENTRY_PADDR 
+    //			sea realmente la dirección de una página (alineada a 12 bits)
+	_Static_assert(MPENTRY_PADDR % PGSIZE == 0, "MPENTRY_PADDR is not page-aligned");
+
 	for (int i = 1; i < npages; ++i) {
-		if ((i * PGSIZE >= IOPHYSMEM) && (i * PGSIZE < (EXTPHYSMEM + PADDR(boot_alloc(0))))) {
+
+		if (((i * PGSIZE >= IOPHYSMEM) 
+			&& (i * PGSIZE < (EXTPHYSMEM + PADDR(boot_alloc(0)))))
+			|| (i * PGSIZE == MPENTRY_PADDR)) {
 			continue;
 		}
 
