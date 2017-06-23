@@ -89,6 +89,22 @@ trap_init(void)
 	extern void mchk();
 	extern void simderr();
 	extern void syscll();
+        extern void irq0();
+        extern void irq1();
+        extern void irq2();
+        extern void irq3();
+        extern void irq4();
+        extern void irq5();
+        extern void irq6();
+        extern void irq7();
+        extern void irq8();
+        extern void irq9();
+        extern void irq10();
+        extern void irq11();
+        extern void irq12();
+        extern void irq13();
+        extern void irq14();
+        extern void irq15();
 
 	// LAB 3: Your code here.
 
@@ -111,13 +127,30 @@ trap_init(void)
         SETGATE(idt[17], 0, GD_KT, align, 0);
         SETGATE(idt[18], 0, GD_KT, mchk, 0);
         SETGATE(idt[19], 0, GD_KT, simderr, 0);
-        
 
         //breakpoint con privilegio 3
         SETGATE(idt[T_BRKPT], 0, GD_KT, brkpt, 3);
 
         //syscall con privilegio 3
         SETGATE(idt[T_SYSCALL], 0, GD_KT, syscll, 3);
+
+        //IRQ
+        SETGATE(idt[IRQ_OFFSET+0], 0, GD_KT, irq0, 0);
+        SETGATE(idt[IRQ_OFFSET+1], 0, GD_KT, irq1, 0);
+        SETGATE(idt[IRQ_OFFSET+2], 0, GD_KT, irq2, 0);
+        SETGATE(idt[IRQ_OFFSET+3], 0, GD_KT, irq3, 0);
+        SETGATE(idt[IRQ_OFFSET+4], 0, GD_KT, irq4, 0);
+        SETGATE(idt[IRQ_OFFSET+5], 0, GD_KT, irq5, 0);
+        SETGATE(idt[IRQ_OFFSET+6], 0, GD_KT, irq6, 0);
+        SETGATE(idt[IRQ_OFFSET+7], 0, GD_KT, irq7, 0);
+        SETGATE(idt[IRQ_OFFSET+8], 0, GD_KT, irq8, 0);
+        SETGATE(idt[IRQ_OFFSET+9], 0, GD_KT, irq9, 0);
+        SETGATE(idt[IRQ_OFFSET+10], 0, GD_KT, irq10, 0);
+        SETGATE(idt[IRQ_OFFSET+11], 0, GD_KT, irq11, 0);
+        SETGATE(idt[IRQ_OFFSET+12], 0, GD_KT, irq12, 0);
+        SETGATE(idt[IRQ_OFFSET+13], 0, GD_KT, irq13, 0);
+        SETGATE(idt[IRQ_OFFSET+14], 0, GD_KT, irq14, 0);
+        SETGATE(idt[IRQ_OFFSET+15], 0, GD_KT, irq15, 0);
 
 	// Per-CPU setup
 	trap_init_percpu();
@@ -249,13 +282,11 @@ trap_dispatch(struct Trapframe *tf)
 	// Handle clock interrupts. Don't forget to acknowledge the
 	// interrupt using lapic_eoi() before calling the scheduler!
 	// LAB 4: Your code here.
-	if (tf->tf_trapno == IRQ_OFFSET + IRQ_TIMER) {
-		cprintf("Timer interrupt on irq 0\n");
-		lapic_eoi();	// que es?
-		syscall(SYS_yield,0,0,0,0,0);
+        if (tf->tf_trapno == IRQ_OFFSET + IRQ_TIMER) {
+		lapic_eoi();
+		sched_yield();
 		return;
 	}
-
 
 	// Unexpected trap: The user process or the kernel has a bug.
 	print_trapframe(tf);
