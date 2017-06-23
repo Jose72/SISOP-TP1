@@ -59,3 +59,21 @@ contador_env
 - ¿qué código asegura que el buffer VGA físico no será nunca añadido a la lista de páginas libres?
 page_init -> entre las direcciones que saltea se encuentra la del buffer VGA
 
+
+envid2env
+---------
+- en JOS, si un proceso llama a sys_env_destroy(0)
+Destruye el env actual
+
+- en Linux, si un proceso llama a kill(0, 9)
+man 2 kill -> kill(process id, signal)
+If pid equals 0, then sig is sent to every process in the process group of the calling process.
+signal 9 -> SIGKILL
+
+- JOS: sys_env_destroy(-1)
+error?
+
+- Linux: kill(-1, 9)
+If pid equals -1, then sig is sent to every process for which the calling  process  has  permission  to  send signals,  except for process 1 (init)
+signal 9 -> SIGKILL
+
