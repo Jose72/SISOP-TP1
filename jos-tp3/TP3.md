@@ -49,3 +49,13 @@ All done in environment 00001002.
 [00001002] free env 00001002
 No runnable environments in the system!
 
+
+contador_env
+------------
+
+- ¿qué ocurrirá con esa página en env_free() al destruir el proceso?
+(en algun lado tiene que estar salteando la pagina porque sino al entrar al page_decref la agregaria a las paginas libres -> imposhibleeee)
+
+- ¿qué código asegura que el buffer VGA físico no será nunca añadido a la lista de páginas libres?
+page_init -> entre las direcciones que saltea se encuentra la del buffer VGA
+
