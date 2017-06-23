@@ -92,7 +92,7 @@ sys_exofork(void)
                return r;//si fallo retorno
         }
         e->env_tf = curenv->env_tf;
-        env->env_tf.tf_regs.reg_eax = 0;
+        e->env_tf.tf_regs.reg_eax = 0;
         e->env_status = ENV_NOT_RUNNABLE;
         return e->env_id;
 }
@@ -125,7 +125,7 @@ sys_env_set_status(envid_t envid, int status)
 		return -E_BAD_ENV;
 	}
 
-	env->env_status = status; //cambio el status
+	e->env_status = status; //cambio el status
 
         return 0;
 }
@@ -144,12 +144,12 @@ sys_env_set_pgfault_upcall(envid_t envid, void *func)
 	// LAB 4: Your code here.
 	//panic("sys_env_set_pgfault_upcall not implemented");
 
-        Struct Env *e;
+        struct Env *e;
         if (envid2env(envid, &e, 1) != 0) {
                 return -E_BAD_ENV;
         }
 
-        env->env_pgfault_upcall = func;
+        e->env_pgfault_upcall = func;
 
         return 0;
 }

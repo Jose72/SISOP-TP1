@@ -89,6 +89,7 @@ trap_init(void)
 	extern void mchk();
 	extern void simderr();
 	extern void syscll();
+
         extern void irq0();
         extern void irq1();
         extern void irq2();
