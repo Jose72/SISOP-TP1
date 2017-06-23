@@ -68,6 +68,11 @@ i386_init(void)
 		ENV_CREATE(TEST, ENV_TYPE_USER);
 #else
 	// Touch all you want.
+
+	// Para correr cualquier proc de usuario poner en el 1er param de ENV_CREATE:
+	// user_<nombre del archivo .c>
+	// ej: 	ENV_CREATE(user_contador, ENV_TYPE_USER);
+
 	ENV_CREATE(user_hello, ENV_TYPE_USER);
 	ENV_CREATE(user_hello, ENV_TYPE_USER);
 	ENV_CREATE(user_hello, ENV_TYPE_USER);
