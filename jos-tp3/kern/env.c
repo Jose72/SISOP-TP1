@@ -185,10 +185,12 @@ env_setup_vm(struct Env *e)
 	//    - The functions in kern/pmap.h are handy.
 
 	// LAB 3: Your code here.
-        p->pp_ref++; //incremento ref
-        e->env_pgdir = page2kva(p); // es un kernel virtual addres
+    p->pp_ref++; //incremento ref
+    e->env_pgdir = page2kva(p); // es un kernel virtual addres
 	memcpy(e->env_pgdir, kern_pgdir, PGSIZE); 
  
+	// Map va for VGA buffer to made user able to write on it
+	page_insert(e->env_pgdir, pa2page(VGA_BUFFER), (void *)VGA_USER, PTE_W | PTE_U);
 
 	// UVPT maps the env's own page table read-only.
 	// Permissions: kernel R, user R

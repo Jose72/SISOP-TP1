@@ -59,6 +59,7 @@ KERN_BINFILES :=	user/hello \
 
 # Binary files for LAB4
 KERN_BINFILES +=	user/idle \
+			user/contador \
 			user/yield \
 			user/dumbfork \
 			user/stresssched \
