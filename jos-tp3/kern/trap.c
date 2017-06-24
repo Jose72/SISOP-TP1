@@ -135,7 +135,7 @@ trap_init(void)
         //syscall con privilegio 3
         SETGATE(idt[T_SYSCALL], 0, GD_KT, syscll, 3);
 
-        //IRQ
+        //IRQ   
         SETGATE(idt[IRQ_OFFSET+0], 0, GD_KT, irq0, 0);
         SETGATE(idt[IRQ_OFFSET+1], 0, GD_KT, irq1, 0);
         SETGATE(idt[IRQ_OFFSET+2], 0, GD_KT, irq2, 0);
@@ -283,6 +283,7 @@ trap_dispatch(struct Trapframe *tf)
 	// Handle clock interrupts. Don't forget to acknowledge the
 	// interrupt using lapic_eoi() before calling the scheduler!
 	// LAB 4: Your code here.
+        
         if (tf->tf_trapno == IRQ_OFFSET + IRQ_TIMER) {
 		lapic_eoi();
 		sched_yield();

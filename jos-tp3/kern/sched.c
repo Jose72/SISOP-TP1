@@ -29,6 +29,7 @@ sched_yield(void)
 	// below to halt the cpu.
 
 	// LAB 4: Your code here.
+
 	struct Env *nextEnv = NULL;
 	int envIndex = 0;
 
@@ -63,6 +64,7 @@ sched_yield(void)
 
 	// sched_halt never returns
 	sched_halt();
+
 }
 
 // Halt this CPU when there is nothing to do. Wait until the

@@ -86,9 +86,10 @@ sys_exofork(void)
 
 	// LAB 4: Your code here.
         //panic("sys_exofork not implemented");
+
         struct Env *e;
         int r = env_alloc(&e, curenv->env_id);
-        if (r){
+        if (r != 0){
                return r;//si fallo retorno
         }
         e->env_tf = curenv->env_tf;
@@ -121,7 +122,7 @@ sys_env_set_status(envid_t envid, int status)
         }
 
         struct Env *e;
-	if (envid2env(envid, &e, 1)){
+	if (envid2env(envid, &e, 1) != 0){
 		return -E_BAD_ENV;
 	}
 
@@ -191,20 +192,19 @@ sys_page_alloc(envid_t envid, void *va, int perm)
 		return -E_INVAL;
 	}
 
-	struct Env * e;
+	struct Env *e;
 	if (envid2env(envid, &e, 1) != 0){
 		return -E_BAD_ENV;
 	}
 
 	struct PageInfo * p = page_alloc(ALLOC_ZERO);
-	if (p == NULL) {
-		return -E_NO_MEM;
-	}
+	if (!p) return -E_NO_MEM;
 
 	int r = page_insert(e->env_pgdir, p, va, perm);
 	if (r != 0) {
 		page_free(p);
 	}
+
         return r;
 }
 
@@ -235,8 +235,32 @@ sys_page_map(envid_t srcenvid, void *srcva, envid_t dstenvid, void *dstva, int p
 	//   check the current permissions on the page.
 
 	// LAB 4: Your code here.
-	panic("sys_page_map not implemented");
+	//panic("sys_page_map not implemented");
+
+        if (!(perm & PTE_U) || !(perm & PTE_P) || (perm & ~PTE_SYSCALL)) {
+		return -E_INVAL;
+	}
+
+        if (srcva != ROUNDUP(srcva, PGSIZE) || (uintptr_t)srcva >= UTOP ||
+	    dstva != ROUNDUP(dstva, PGSIZE) || (uintptr_t)dstva >= UTOP) {
+		return -E_INVAL;
+	}
+
+        struct Env *src_e, *dst_e;
+	if (envid2env(srcenvid, &src_e, 1) != 0 ||
+	    envid2env(dstenvid, &dst_e, 1) != 0) {
+		return -E_BAD_ENV;
+	}
+
+	pte_t* pte;
+	struct PageInfo *p = page_lookup(src_e->env_pgdir, srcva, &pte);
+	if (!p) return -E_INVAL;
         
+        if (!(*pte & PTE_W) && (perm & PTE_W)) {
+		return -E_INVAL;
+	}
+
+        return page_insert(dst_e->env_pgdir, p, dstva, perm);      
 }
 
 // Unmap the page of memory at 'va' in the address space of 'envid'.
@@ -252,7 +276,21 @@ sys_page_unmap(envid_t envid, void *va)
 	// Hint: This function is a wrapper around page_remove().
 
 	// LAB 4: Your code here.
-	panic("sys_page_unmap not implemented");
+	//panic("sys_page_unmap not implemented");
+
+        struct Env *e;
+	if (envid2env(envid, &e, 1) != 0){
+		return -E_BAD_ENV;
+	}
+
+	if (va != ROUNDUP(va, PGSIZE) || (uintptr_t)va >= UTOP) {
+		return -E_INVAL;
+	}
+
+	page_remove(e->env_pgdir, va);
+
+        return 0;
+
 }
 
 // Try to send 'value' to the target env 'envid'.
