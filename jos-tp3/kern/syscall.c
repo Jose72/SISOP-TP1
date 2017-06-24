@@ -89,7 +89,7 @@ sys_exofork(void)
 
         struct Env *e;
         int r = env_alloc(&e, curenv->env_id);
-        if (r != 0){
+        if (r < 0){
                return r;//si fallo retorno
         }
         e->env_tf = curenv->env_tf;
