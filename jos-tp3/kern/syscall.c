@@ -378,8 +378,32 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 		case SYS_env_destroy:
 			return sys_env_destroy(a1);
 			break;
+		case SYS_page_alloc:	
+			sys_page_alloc(a1,(void *)a2,a3);
+			break;
+		case SYS_page_map:	
+			sys_page_map(a1,(void *)a2,a3,(void *)a4,a5);
+			break;
+		case SYS_page_unmap:	
+			sys_page_unmap(a1,(void *)a2);
+			break;
+		case SYS_exofork:
+			sys_exofork();
+			break;
+		case SYS_env_set_status:
+			sys_env_set_status(a1,a2);
+			break;
+		case SYS_env_set_pgfault_upcall:
+			sys_env_set_pgfault_upcall(a1,(void *)a2);
+			break;
 		case SYS_yield:
 			sys_yield();
+			break;
+		case SYS_ipc_try_send:
+			sys_ipc_try_send(a1,a2,(void *)a3,a4);
+			break;
+		case SYS_ipc_recv:
+			sys_ipc_recv((void *)a1);
 			break;
 
 		default:
