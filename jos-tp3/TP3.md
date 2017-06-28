@@ -81,3 +81,34 @@ error?
 If pid equals -1, then sig is sent to every process for which the calling  process  has  permission  to  send signals,  except for process 1 (init)
 signal 9 -> SIGKILL
 
+
+dumbfork
+---------
+- Si, antes de llamar a dumbfork(), el proceso se reserva a sí mismo una página con sys_page_alloc() ¿se propagará una copia al proceso hijo? ¿Por qué?
+
+Depende, el dumbfork copia el espacio de direcciones por encima de UTEXT hasta end, si la pagina fue mapeada por debajo (por ej en UTEMP) no sera copiada.
+
+- ¿Se preserva el estado de solo-lectura en las páginas copiadas? Mostrar, con código en espacio de usuario, cómo saber si una dirección de memoria es modificable por el proceso, o no.
+
+No, en duppage caundo se aloca la pagina y se mapea en el dstenv, se hace con permiso de escritura.
+
+- Describir el funcionamiento de la función duppage().
+
+Recibe un envid_t (dstenv) y una va (addr)
+-reserva una pagina en el espacio de direcciones de dstenv, y la mapea a la va addr
+-hace que la va UTEMP (en el espacio de direcciones del env actual) y mapee a al misma pagina fisica que la va addr
+-copia la pagina mapeada en la va addr (en el espacio de direcciones del env actual) a la va UTEMP (en el espacio de direcciones del env actual)
+-desmapea la va UTEMP (en el espacio de direcciones del env actual)
+
+De esta forma queda un pagina mapeada a la direccion addr en el espacio de direcciones de dstenv, con el mismo contenido que la pagina mapeada en la direccion addr en el espacio de direcciones del env actual
+
+
+- Supongamos que se añade a duppage() un argumento booleano que indica si la página debe quedar como solo-lectura en el proceso hijo:
+indicar qué llamada adicional se debería hacer si el booleano es true
+describir un algoritmo alternativo que no aumente el número de llamadas al sistema, que debe quedar en 3 (1 × alloc, 1 × map, 1 × unmap).
+      
+
+- ¿Por qué se usa ROUNDDOWN(&addr) para copiar el stack? ¿Qué es addr y por qué, si el stack crece hacia abajo, se usa ROUNDDOWN y no ROUNDUP?
+
+
+

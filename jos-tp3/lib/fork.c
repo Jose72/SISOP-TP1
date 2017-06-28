@@ -58,6 +58,36 @@ duppage(envid_t envid, unsigned pn)
 	return 0;
 }
 
+envid_t
+fork_v0(void)
+{
+        panic("fork not implemented");
+	envid_t envid;
+	uint8_t *addr;
+	int r;
+
+	envid = sys_exofork();
+	if (envid < 0)
+		panic("sys_exofork: %e", envid);
+	if (envid == 0) {
+		thisenv = &envs[ENVX(sys_getenvid())];
+		return 0;
+	}
+        
+        for (addr = 0; addr < (uint8_t*) UTOP; addr += PGSIZE){
+
+
+		//dup_or_share();
+	}
+   
+        if (sys_env_set_status(envid, ENV_RUNNABLE)) {
+                panic("fork: cannot set env status");
+        }
+
+return envid;
+}
+
+
 //
 // User-level fork with copy-on-write.
 // Set up our page fault handler appropriately.
@@ -79,6 +109,7 @@ fork(void)
 {
 	// LAB 4: Your code here.
 	panic("fork not implemented");
+        return fork_v0();
 }
 
 // Challenge!
