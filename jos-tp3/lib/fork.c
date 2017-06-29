@@ -58,10 +58,31 @@ duppage(envid_t envid, unsigned pn)
 	return 0;
 }
 
+static int
+dup_or_share(envid_t dstenv, void *va, int perm)
+{
+
+	if (!(perm & PTE_W)) {
+		int error = sys_page_map(dstenv, va, dstenv, va, perm); 
+		if (error) {
+			panic("dup_or_share - sys_page_map without W perm: %e", error);		
+		}
+	} else {
+		int error = sys_page_alloc(dstenv, va, perm);
+		if (error)
+			panic("dup_or_share - sys_page_alloc: %e", error);
+		error = sys_page_map(dstenv, va, 0, va, perm);
+		if (error)
+			panic("dup_or_share - sys_page_map with W perm: %e", error);		
+
+	}
+
+	return 0;
+}
+
 envid_t
 fork_v0(void)
 {
-        panic("fork not implemented");
 	envid_t envid;
 	uint8_t *addr;
 	int r;
@@ -74,17 +95,18 @@ fork_v0(void)
 		return 0;
 	}
         
-        for (addr = 0; addr < (uint8_t*) UTOP; addr += PGSIZE){
-
-
-		//dup_or_share();
+    for (addr = 0; addr < (uint8_t*) UTOP; addr += PGSIZE) {
+    	// Si la page directory y la page table son validas..
+    	if ((uvpd[PDX(addr)] & PTE_P) && (uvpt[PGNUM(addr)] & PTE_P)) {
+			dup_or_share(envid, addr, uvpt[PGNUM(addr)] & PTE_SYSCALL);
+    	}
 	}
    
-        if (sys_env_set_status(envid, ENV_RUNNABLE)) {
-                panic("fork: cannot set env status");
-        }
+    if (sys_env_set_status(envid, ENV_RUNNABLE)) {
+        panic("fork: cannot set env status");
+    }
 
-return envid;
+	return envid;
 }
 
 
@@ -108,8 +130,7 @@ envid_t
 fork(void)
 {
 	// LAB 4: Your code here.
-	panic("fork not implemented");
-        return fork_v0();
+    return fork_v0();
 }
 
 // Challenge!
