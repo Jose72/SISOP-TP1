@@ -386,7 +386,6 @@ page_alloc(int alloc_flags)
 
         //si se cumple, la pagina se llena de 0's
         if (alloc_flags & ALLOC_ZERO) {
-                //kva dir virtual de la pag, no tendria que ser fisica??
                 memset(page2kva(pinfo_p), 0, PGSIZE);
         }
 	return pinfo_p; 
