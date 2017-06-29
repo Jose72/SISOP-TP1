@@ -61,20 +61,20 @@ duppage(envid_t envid, unsigned pn)
 static int
 dup_or_share(envid_t dstenv, void *va, int perm)
 {
-
-	if (!(perm & PTE_W)) {
-		int error = sys_page_map(dstenv, va, dstenv, va, perm); 
-		if (error) {
-			panic("dup_or_share - sys_page_map without W perm: %e", error);		
-		}
-	} else {
-		int error = sys_page_alloc(dstenv, va, perm);
-		if (error)
+	int error;
+	if (perm & PTE_W) {
+		error = sys_page_alloc(dstenv, 0, perm);
+		if (error) 
 			panic("dup_or_share - sys_page_alloc: %e", error);
-		error = sys_page_map(dstenv, va, 0, va, perm);
+		error = sys_page_map(0, va, dstenv, 0, perm);
 		if (error)
 			panic("dup_or_share - sys_page_map with W perm: %e", error);		
 
+	} else {
+		error = sys_page_map(dstenv, va, dstenv, va, perm); 
+		if (error) {
+			panic("dup_or_share - sys_page_map without W perm: %e", error);		
+		}
 	}
 
 	return 0;
@@ -97,7 +97,8 @@ fork_v0(void)
         
     for (addr = 0; addr < (uint8_t*) UTOP; addr += PGSIZE) {
     	// Si la page directory y la page table son validas..
-    	if ((uvpd[PDX(addr)] & PTE_P) && (uvpt[PGNUM(addr)] & PTE_P)) {
+    	if ((uvpd[PDX(addr)] & PTE_P) && (uvpt[PGNUM(addr)] & PTE_P)
+    			&& (uvpt[PGNUM(addr)] & PTE_U)) {
 			dup_or_share(envid, addr, uvpt[PGNUM(addr)] & PTE_SYSCALL);
     	}
 	}
