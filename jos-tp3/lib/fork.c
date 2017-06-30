@@ -83,12 +83,12 @@ dup_or_share(envid_t dstenv, void *va, int perm)
 {
 	int error;
 
-        //direccion I/O, hacer return, no es neceario mapear de nuevo
+        //direccion de I/O, hacer return, no hay que mapear de nuevo
         if (perm & (PTE_PCD | PTE_PWT)) {     
                 return 0;
         }
 
-        //se es escritura o copy on write
+        //si es escritura
 	if ((perm & PTE_W)) {
                 /*
 		error = sys_page_alloc(dstenv, 0, perm);
@@ -98,6 +98,8 @@ dup_or_share(envid_t dstenv, void *va, int perm)
 		if (error)
 			panic("dup_or_share - sys_page_map with W perm: %e", error);	
                 */
+                
+                //COPIA DEL DUPPAGE DE DUMBFORK
 
                 error = sys_page_alloc(dstenv, va, perm);
 		if (error) 
@@ -118,8 +120,7 @@ dup_or_share(envid_t dstenv, void *va, int perm)
 		        panic("dup_or_share - sys_page_unmap: %e", error);
 
 
-	} else {
-		//error = sys_page_map(dstenv, va, dstenv, va, perm); 
+	} else { //si es solo lectura
                 error = sys_page_map(0, va, dstenv, va, perm);
 		if (error) {
 			panic("dup_or_share - sys_page_map without W perm: %e", error);		
