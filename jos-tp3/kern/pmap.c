@@ -354,6 +354,8 @@ page_init(void)
 		pages[i].pp_link = page_free_list;
 		page_free_list = &pages[i];
 	}
+
+        (pa2page(VGA_BUFFER)->pp_ref)++; //para el buffer VGA
 }
 
 //
