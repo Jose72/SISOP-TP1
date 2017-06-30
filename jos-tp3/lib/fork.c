@@ -54,7 +54,27 @@ duppage(envid_t envid, unsigned pn)
 	int r;
 
 	// LAB 4: Your code here.
-	panic("duppage not implemented");
+	//panic("duppage not implemented");
+
+	void *addr = (void*) (pn*PGSIZE);
+
+        if (uvpt[pn] & (PTE_PCD | PTE_PWT)) {     
+                return 0;
+        }
+
+	if ((uvpt[pn] & PTE_W) || (uvpt[pn] & PTE_COW)) {
+
+		if ((r = sys_page_map(0, addr, envid, addr, PTE_U | PTE_P | PTE_COW))) {
+			panic("duppage: %e", r);
+                }
+
+		if ((r = sys_page_map(0, addr, 0, addr, PTE_U | PTE_P | PTE_COW))) {
+			panic("duppage: %e", r);
+                }
+	} else {
+                sys_page_map(0, addr, envid, addr, PTE_U | PTE_P);
+        }
+
 	return 0;
 }
 
@@ -62,16 +82,45 @@ static int
 dup_or_share(envid_t dstenv, void *va, int perm)
 {
 	int error;
-	if (perm & PTE_W) {
+
+        //direccion I/O, hacer return, no es neceario mapear de nuevo
+        if (perm & (PTE_PCD | PTE_PWT)) {     
+                return 0;
+        }
+
+        //se es escritura o copy on write
+	if ((perm & PTE_W)) {
+                /*
 		error = sys_page_alloc(dstenv, 0, perm);
 		if (error) 
 			panic("dup_or_share - sys_page_alloc: %e", error);
 		error = sys_page_map(0, va, dstenv, 0, perm);
 		if (error)
-			panic("dup_or_share - sys_page_map with W perm: %e", error);		
+			panic("dup_or_share - sys_page_map with W perm: %e", error);	
+                */
+
+                error = sys_page_alloc(dstenv, va, perm);
+		if (error) 
+			panic("dup_or_share - sys_page_alloc: %e", error);
+                
+                //dir aux para la pag, dumbfork usaba UTEMP
+                //pero en este fork tambien se copia esa pag, no se tendria que usar (creo)
+                //uso la dir 0 (hay otra mejor?)
+                int aux_addr = 0;
+
+                error = sys_page_map(dstenv, va, 0, (void*) aux_addr, perm);
+		if (error)
+			panic("dup_or_share - sys_page_map with W perm: %e", error);
+
+
+                memmove((void*) aux_addr, va, PGSIZE);
+	        if ((error = sys_page_unmap(0, (void*) aux_addr)) < 0)
+		        panic("dup_or_share - sys_page_unmap: %e", error);
+
 
 	} else {
-		error = sys_page_map(dstenv, va, dstenv, va, perm); 
+		//error = sys_page_map(dstenv, va, dstenv, va, perm); 
+                error = sys_page_map(0, va, dstenv, va, perm);
 		if (error) {
 			panic("dup_or_share - sys_page_map without W perm: %e", error);		
 		}
@@ -95,19 +144,21 @@ fork_v0(void)
 		return 0;
 	}
         
-    for (addr = 0; addr < (uint8_t*) UTOP; addr += PGSIZE) {
+        for (addr = 0; addr < (uint8_t*) UTOP; addr += PGSIZE) {
     	// Si la page directory y la page table son validas..
-    	if ((uvpd[PDX(addr)] & PTE_P) && (uvpt[PGNUM(addr)] & PTE_P)
+
+    	        if ((uvpd[PDX(addr)] & PTE_P) && (uvpt[PGNUM(addr)] & PTE_P)
     			&& (uvpt[PGNUM(addr)] & PTE_U)) {
 			dup_or_share(envid, addr, uvpt[PGNUM(addr)] & PTE_SYSCALL);
-    	}
-	}
-   
-    if (sys_env_set_status(envid, ENV_RUNNABLE)) {
-        panic("fork: cannot set env status");
-    }
+    	        }
+        }
 
-	return envid;
+
+        if (sys_env_set_status(envid, ENV_RUNNABLE)) {
+                panic("fork: cannot set env status");
+        }
+    
+        return envid;
 }
 
 

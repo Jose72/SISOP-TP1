@@ -190,7 +190,7 @@ env_setup_vm(struct Env *e)
 	memcpy(e->env_pgdir, kern_pgdir, PGSIZE); 
  
 	// Map va for VGA buffer to made user able to write on it
-	page_insert(e->env_pgdir, pa2page(VGA_BUFFER), (void *)VGA_USER, PTE_W | PTE_U);
+	page_insert(e->env_pgdir, pa2page(VGA_BUFFER), (void *)VGA_USER, PTE_W | PTE_U | PTE_PCD | PTE_PWT);
 
 	// UVPT maps the env's own page table read-only.
 	// Permissions: kernel R, user R

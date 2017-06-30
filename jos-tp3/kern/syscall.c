@@ -254,7 +254,9 @@ sys_page_map(envid_t srcenvid, void *srcva, envid_t dstenvid, void *dstva, int p
 
 	pte_t* pte;
 	struct PageInfo *p = page_lookup(src_e->env_pgdir, srcva, &pte);
-	if (!p) return -E_INVAL;
+	if (!p) {
+                return -E_INVAL;
+        }
         
         if (!(*pte & PTE_W) && (perm & PTE_W)) {
 		return -E_INVAL;
