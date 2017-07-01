@@ -338,20 +338,19 @@ sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
 {
 	// LAB 4: Your code here.
 	//panic("sys_ipc_try_send not implemented");
+   
   
         struct Env *e;
-
-        if (envid2env(envid, &e, 0)){
-                return -E_BAD_ENV;
+        int r;
+        if ((r = envid2env(envid, &e, 0))){
+                return r;
         }
 
         if (!e->env_ipc_recving){
                 return -E_IPC_NOT_RECV;
         }
 
-        void *dstva = e->env_ipc_dstva;
-
-       
+        e->env_ipc_perm = 0;
 
         if ((uintptr_t)srcva < UTOP) {
 
@@ -374,21 +373,21 @@ sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
                 }
 
                 if ((uintptr_t)e->env_ipc_dstva < UTOP) {
-			if(page_insert(e->env_pgdir, p, e->env_ipc_dstva, perm)){
-                                return -E_NO_MEM;
+                        int r;
+			if((r = page_insert(e->env_pgdir, p, e->env_ipc_dstva, perm))){
+                                return r;
                         }
 			e->env_ipc_perm = perm;
                 }
 
-        } else {
-                e->env_ipc_perm = 0;
         }
-          
+        e->env_tf.tf_regs.reg_eax = 0;//este seria el retorno     
         e->env_ipc_recving = 0;
         e->env_ipc_from = curenv->env_id;
         e->env_ipc_value = value;
         e->env_status = ENV_RUNNABLE;
         return 0;
+
 }
 
 // Block until a value is ready.  Record that you want to receive
