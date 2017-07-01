@@ -10,6 +10,7 @@ env_return
 ----------
 - al terminar un proceso su función umain() ¿dónde retoma la ejecución el kernel? Describir la secuencia de llamadas desde que termina umain() hasta que el kernel dispone del proceso.
 
+
 - ¿en qué cambia la función env_destroy() en este TP, respecto al TP anterior?
 
 
@@ -20,10 +21,21 @@ sys_yield
 [00000000] new env 00001000
 [00000000] new env 00001001
 [00000000] new env 00001002
+-> En este punto fueron creados los 3 environments
+
 Hello, I am environment 00001000.
+-> El primer environment llamo a umain, y al entrar al loop se llama a sys_yield, por lo que cambia de env.
+
 Hello, I am environment 00001001.
+-> Debido a que el primer environment llamo a sys_yield el segundo env fue lanzado, y, al igual que el primero, llama a sys_yield.
+
 Hello, I am environment 00001002.
+-> En este caso, cuando llame a sys_yield lo tomara el primer env que fue frenado dentro del loop
+
 Back in environment 00001000, iteration 0.
+-> Este print demuestra que el primer environment habia sido frenado dentro del loop, y que retoma su ejecucion desde alli. 
+A continuacion los env seguiran llamando a sys_yield hasta que terminen de iterar 5 veces.
+
 Back in environment 00001001, iteration 0.
 Back in environment 00001002, iteration 0.
 Back in environment 00001000, iteration 1.
@@ -36,31 +48,42 @@ Back in environment 00001000, iteration 3.
 Back in environment 00001001, iteration 3.
 Back in environment 00001002, iteration 3.
 Back in environment 00001000, iteration 4.
+
 All done in environment 00001000.
+-> Al terminar las iteraciones, el primer env finaliza su umain, iniciando el proceso de desalojo.
+
 [00001000] exiting gracefully
 [00001000] free env 00001000
+-> El primer environment fue destruido y liberado.
+Al destruirse el primer env, el kernel llama a sys_yield para corroborar que no haya otros procesos esperando a retomar su ejecucion (o comenzarla).
+
 Back in environment 00001001, iteration 4.
+-> El kernel encuentra que el segundo env estaba esperando y lo lanza nuevamente.
+
 All done in environment 00001001.
 [00001001] exiting gracefully
 [00001001] free env 00001001
+-> El segundo env termina su ejecucion al igual que el primero, y nuevamente el kernel llama, luego de liberar el env, a sys_yield.
+
 Back in environment 00001002, iteration 4.
 All done in environment 00001002.
 [00001002] exiting gracefully
 [00001002] free env 00001002
+-> El kernel encuentra al tercer env y retoma su ejecucion.
+El env termina y el kernel destruye y libera el ultimo env.
+Al igual que antes llama a sys_yield para corroborar si hay nuevos env para ejecutar.
+
 No runnable environments in the system!
+-> Al no haberse lanzado nuevos environments, el scheduler llama a halt y finaliza.
 
 
 contador_env
 ------------
-
 - ¿qué ocurrirá con esa página en env_free() al destruir el proceso?
-
 pp->ref es incrementado en el page_insert y luego decrementado en page_decref
 pp->ref es 0 entonces va a page_free y causa un panic porque pp->link no es NULL.
 
-
 - ¿qué código asegura que el buffer VGA físico no será nunca añadido a la lista de páginas libres?
-
 page_init -> inicializar pp->ref a 1 (o cualquier numero mayor)
 
 
@@ -70,16 +93,13 @@ envid2env
 Destruye el env actual
 
 - en Linux, si un proceso llama a kill(0, 9)
-man 2 kill -> kill(process id, signal)
-If pid equals 0, then sig is sent to every process in the process group of the calling process.
-signal 9 -> SIGKILL
+Destruye a todos los procesos que pertenecen al mismo grupo del proceso llamador.
 
 - JOS: sys_env_destroy(-1)
 error?
 
 - Linux: kill(-1, 9)
-If pid equals -1, then sig is sent to every process for which the calling  process  has  permission  to  send signals,  except for process 1 (init)
-signal 9 -> SIGKILL
+Destruye a todos los procesos que pueden escuchar interrupciones del proceso llamador (exeptuando al proceso init).
 
 
 dumbfork
