@@ -65,6 +65,7 @@
 #define PTE_PS		0x080	// Page Size
 #define PTE_G		0x100	// Global
 
+#define PTE_MAPPED	0x200
 
 // The PTE_AVAIL bits aren't used by the kernel or interpreted by the
 // hardware, so user processes are allowed to set them arbitrarily.
