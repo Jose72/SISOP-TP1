@@ -55,13 +55,13 @@ contador_env
 
 - ¿qué ocurrirá con esa página en env_free() al destruir el proceso?
 
-(en algun lado tiene que estar salteando la pagina porque sino al entrar al page_decref la agregaria a las paginas libres -> imposhibleeee)
-env_free -> page_remove -> page_lookup : este ultimo no encuentra la pagina porque no esta mapeada
+pp->ref es incrementado en el page_insert y luego decrementado en page_decref
+pp->ref es 0 entonces va a page_free y causa un panic porque pp->link no es NULL.
+
 
 - ¿qué código asegura que el buffer VGA físico no será nunca añadido a la lista de páginas libres?
 
-page_init -> entre las direcciones que saltea se encuentra la del buffer VGA
-La pagina fisica nunca fue inicializada en la lista de paginas libres
+page_init -> inicializar pp->ref a 1 (o cualquier numero mayor)
 
 
 envid2env
@@ -86,11 +86,11 @@ dumbfork
 ---------
 - Si, antes de llamar a dumbfork(), el proceso se reserva a sí mismo una página con sys_page_alloc() ¿se propagará una copia al proceso hijo? ¿Por qué?
 
-Depende, el dumbfork copia el espacio de direcciones por encima de UTEXT hasta end, si la pagina fue mapeada por debajo (por ej en UTEMP) no sera copiada.
+Depende, el dumbfork copia el espacio de direcciones por encima de UTEXT hasta end, y sys_page_alloc() permite alocar por debajo de UTOP, mientras este entre esos se propagara, si la pagina fue mapeada por debajo de UTEXT (por ej en UTEMP) no sera copiada.
 
 - ¿Se preserva el estado de solo-lectura en las páginas copiadas? Mostrar, con código en espacio de usuario, cómo saber si una dirección de memoria es modificable por el proceso, o no.
 
-No, en duppage caundo se aloca la pagina y se mapea en el dstenv, se hace con permiso de escritura.
+No, en duppage cuando se aloca la pagina y se mapea en el dstenv, se hace siempre con permiso de escritura.
 
 - Describir el funcionamiento de la función duppage().
 
@@ -106,7 +106,14 @@ De esta forma queda un pagina mapeada a la direccion addr en el espacio de direc
 - Supongamos que se añade a duppage() un argumento booleano que indica si la página debe quedar como solo-lectura en el proceso hijo:
 indicar qué llamada adicional se debería hacer si el booleano es true
 describir un algoritmo alternativo que no aumente el número de llamadas al sistema, que debe quedar en 3 (1 × alloc, 1 × map, 1 × unmap).
-      
+   
+Una llamada adicional a sys_page_map
+
+sys_page_map(dstenv, addr, dstenv, addr, PTE_P|PTE_U) 
+
+Se chequea el boleano, si es con escritura, realizamos el duppage que esta ahi, sino hacer sys_page_map(0, addr, dstenv, addr, PTE_P|PTE_U) 
+Asi addr mapea a la misma pagina fisica desde los 2 espacios de direcciones, como es solo lectura la comparten.
+
 
 - ¿Por qué se usa ROUNDDOWN(&addr) para copiar el stack? ¿Qué es addr y por qué, si el stack crece hacia abajo, se usa ROUNDDOWN y no ROUNDUP?
 
