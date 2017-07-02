@@ -88,9 +88,12 @@ contador_env
 ------------
 - ¿qué ocurrirá con esa página en env_free() al destruir el proceso?
 
+el pp->ref de la pag se incrementa en page_insert (en cada env_setup_vm), y se decremetna en page_decref (con cada env_free)
+Al final, pp->ref llegara a 0 y la pagina se añade a la lista de pags libres. 
 
 - ¿qué código asegura que el buffer VGA físico no será nunca añadido a la lista de páginas libres?
 
+Habria que inicializar el pp->ref de la pagina a 1 (u otro valor mayor) para que nunca llegue a 0.
 
 
 envid2env

@@ -185,8 +185,8 @@ env_setup_vm(struct Env *e)
 	//    - The functions in kern/pmap.h are handy.
 
 	// LAB 3: Your code here.
-    p->pp_ref++; //incremento ref
-    e->env_pgdir = page2kva(p); // es un kernel virtual addres
+        p->pp_ref++; //incremento ref
+        e->env_pgdir = page2kva(p); // es un kernel virtual addres
 	memcpy(e->env_pgdir, kern_pgdir, PGSIZE); 
  
 	// Map va for VGA buffer to made user able to write on it
@@ -436,7 +436,7 @@ env_free(struct Env *e)
 
 		// find the pa and va of the page table
 		pa = PTE_ADDR(e->env_pgdir[pdeno]);
-		pt = (pte_t *) KADDR(pa);
+		pt = (pte_t *) KADDR(pa);            
 
 		// unmap all PTEs in this page table
 		for (pteno = 0; pteno <= PTX(~0); pteno++) {
