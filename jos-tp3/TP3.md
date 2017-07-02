@@ -4,20 +4,23 @@ TP2: Multitarea con desalojo
 static_assert
 -------------
 ¿cómo y por qué funciona la macro static_assert que define JOS?
+-> No entiendo a que apunta la pregunta.. la macro valida en tiempo de compilacion si el parametro es valido. Lo que nos ahorraria tener un crash (assert false) en tiempo de ejecucion. 
+Para impementarlo usa un switch case en donde, si no entra al caso que se le pasa por parametro cae en un error (un case sin concluir).
 
 
 env_return
 ----------
 - al terminar un proceso su función umain() ¿dónde retoma la ejecución el kernel? Describir la secuencia de llamadas desde que termina umain() hasta que el kernel dispone del proceso.
-
+-> no entiendo lo de "donde". Cuando finaliza el umain(), se llama a exit(), el cual invoca a sys_env_destroy(0). Es decir que destruye el env actual. 
+Al destruir un env, el kernel cambia el estado del mismo, y llama a sys_yield, por lo cual continua con el siguiente env disponible.
 
 - ¿en qué cambia la función env_destroy() en este TP, respecto al TP anterior?
+Maneja distintos estados y multiples environments.
 
 
 sys_yield
 ---------
 - explicar la salida de make qemu-nox
-
 [00000000] new env 00001000
 [00000000] new env 00001001
 [00000000] new env 00001002
@@ -97,45 +100,46 @@ Destruye a todos los procesos que pertenecen al mismo grupo del proceso llamador
 
 - JOS: sys_env_destroy(-1)
 error?
+-> mataria al ultimo env de NENV?
 
 - Linux: kill(-1, 9)
 Destruye a todos los procesos que pueden escuchar interrupciones del proceso llamador (exeptuando al proceso init).
 
 
 dumbfork
----------
+--------
 - Si, antes de llamar a dumbfork(), el proceso se reserva a sí mismo una página con sys_page_alloc() ¿se propagará una copia al proceso hijo? ¿Por qué?
-
 Depende, el dumbfork copia el espacio de direcciones por encima de UTEXT hasta end, y sys_page_alloc() permite alocar por debajo de UTOP, mientras este entre esos se propagara, si la pagina fue mapeada por debajo de UTEXT (por ej en UTEMP) no sera copiada.
 
 - ¿Se preserva el estado de solo-lectura en las páginas copiadas? Mostrar, con código en espacio de usuario, cómo saber si una dirección de memoria es modificable por el proceso, o no.
-
 No, en duppage cuando se aloca la pagina y se mapea en el dstenv, se hace siempre con permiso de escritura.
 
 - Describir el funcionamiento de la función duppage().
-
 Recibe un envid_t (dstenv) y una va (addr)
--reserva una pagina en el espacio de direcciones de dstenv, y la mapea a la va addr
--hace que la va UTEMP (en el espacio de direcciones del env actual) y mapee a al misma pagina fisica que la va addr
--copia la pagina mapeada en la va addr (en el espacio de direcciones del env actual) a la va UTEMP (en el espacio de direcciones del env actual)
--desmapea la va UTEMP (en el espacio de direcciones del env actual)
+-> reserva una pagina en el espacio de direcciones de dstenv, y la mapea a la va addr
+-> hace que la va UTEMP (en el espacio de direcciones del env actual) y mapee a al misma pagina fisica que la va addr
+-> copia la pagina mapeada en la va addr (en el espacio de direcciones del env actual) a la va UTEMP (en el espacio de direcciones del env actual)
+-> desmapea la va UTEMP (en el espacio de direcciones del env actual)
 
 De esta forma queda un pagina mapeada a la direccion addr en el espacio de direcciones de dstenv, con el mismo contenido que la pagina mapeada en la direccion addr en el espacio de direcciones del env actual
 
-
-- Supongamos que se añade a duppage() un argumento booleano que indica si la página debe quedar como solo-lectura en el proceso hijo:
-indicar qué llamada adicional se debería hacer si el booleano es true
-describir un algoritmo alternativo que no aumente el número de llamadas al sistema, que debe quedar en 3 (1 × alloc, 1 × map, 1 × unmap).
-   
-Una llamada adicional a sys_page_map
-
-sys_page_map(dstenv, addr, dstenv, addr, PTE_P|PTE_U) 
-
+- Supongamos que se añade a duppage() un argumento booleano que indica si la página debe quedar como solo-lectura en el proceso hijo: indicar qué llamada adicional se debería hacer si el booleano es true describir un algoritmo alternativo que no aumente el número de llamadas al sistema, que debe quedar en 3 (1 × alloc, 1 × map, 1 × unmap).
+Una llamada adicional a sys_page_map: sys_page_map(dstenv, addr, dstenv, addr, PTE_P|PTE_U) 
 Se chequea el boleano, si es con escritura, realizamos el duppage que esta ahi, sino hacer sys_page_map(0, addr, dstenv, addr, PTE_P|PTE_U) 
 Asi addr mapea a la misma pagina fisica desde los 2 espacios de direcciones, como es solo lectura la comparten.
-
 
 - ¿Por qué se usa ROUNDDOWN(&addr) para copiar el stack? ¿Qué es addr y por qué, si el stack crece hacia abajo, se usa ROUNDDOWN y no ROUNDUP?
 
 
+contador_fork
+-------------
+- ¿Funciona? ¿Qué está ocurriendo con el mapping de VGA_USER? ¿Dónde hay que arreglarlo?
+
+- ¿Podría fork() darse cuenta, en lugar de usando un flag propio, mirando los flags PTE_PWT y/o PTE_PCD? (Suponiendo que env_setup_vm() los añadiera para VGA_USER.)
+
+
+Ejecución en paralelo (multi-core) -> Deberiamos responderla?
+----------------------------------
+- It seems that using the big kernel lock guarantees that only one CPU can run the kernel code at a time. Why do we still need separate kernel stacks for each CPU? Describe a scenario in which using a shared kernel stack will go wrong, even with the protection of the big kernel lock.
+En el caso que haya una interrupcion del hardware (?)
 
