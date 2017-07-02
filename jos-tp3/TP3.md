@@ -147,12 +147,14 @@ addr es una variable local de fork_v0, al hacer &addr tenemos un puntero al stac
 contador_fork
 -------------
 - ¿Funciona? ¿Qué está ocurriendo con el mapping de VGA_USER? ¿Dónde hay que arreglarlo?
+No. Al crear un nuevo env, se sigue copiando la pagina del buffer VGA. En dup_or_share se puede solucionar validando que la pagina no este mapeada.
 
 - ¿Podría fork() darse cuenta, en lugar de usando un flag propio, mirando los flags PTE_PWT y/o PTE_PCD? (Suponiendo que env_setup_vm() los añadiera para VGA_USER.)
 
 
-Ejecución en paralelo (multi-core) -> Deberiamos responderla?
+
+Ejecución en paralelo (multi-core) 
 ----------------------------------
 - It seems that using the big kernel lock guarantees that only one CPU can run the kernel code at a time. Why do we still need separate kernel stacks for each CPU? Describe a scenario in which using a shared kernel stack will go wrong, even with the protection of the big kernel lock.
-En el caso que haya una interrupcion del hardware (?)
+En el caso que haya una interrupcion del hardware.
 
