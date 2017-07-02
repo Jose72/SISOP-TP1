@@ -80,25 +80,31 @@ No runnable environments in the system!
 contador_env
 ------------
 - ¿qué ocurrirá con esa página en env_free() al destruir el proceso?
+
 pp->ref es incrementado en el page_insert y luego decrementado en page_decref
 pp->ref es 0 entonces va a page_free y causa un panic porque pp->link no es NULL.
 
 - ¿qué código asegura que el buffer VGA físico no será nunca añadido a la lista de páginas libres?
+
 page_init -> inicializar pp->ref a 1 (o cualquier numero mayor)
 
 
 envid2env
 ---------
 - en JOS, si un proceso llama a sys_env_destroy(0)
+
 Destruye el env actual
 
 - en Linux, si un proceso llama a kill(0, 9)
+
 Destruye a todos los procesos que pertenecen al mismo grupo del proceso llamador.
 
 - JOS: sys_env_destroy(-1)
-error?
+
+Busca el env con envid2env, en la pos ENVX(-1) = 1023 del array de envs, si el env no fue creado retorna error, sino se destruye.
 
 - Linux: kill(-1, 9)
+
 Destruye a todos los procesos que pueden escuchar interrupciones del proceso llamador (exeptuando al proceso init).
 
 
