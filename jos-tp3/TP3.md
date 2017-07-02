@@ -86,7 +86,7 @@ pp->ref es 0 entonces va a page_free y causa un panic porque pp->link no es NULL
 
 - ¿qué código asegura que el buffer VGA físico no será nunca añadido a la lista de páginas libres?
 
-page_init -> inicializar pp->ref a 1 (o cualquier numero mayor)
+En page_init, hay que inicializar pp->ref a 1 (o cualquier numero mayor) para que no llegue a 0 nunca.
 
 
 envid2env
@@ -120,9 +120,9 @@ No, en duppage cuando se aloca la pagina y se mapea en el dstenv, se hace siempr
 
 - Describir el funcionamiento de la función duppage().
 
-Recibe un envid_t (dstenv) y una va (addr)
--reserva una pagina en el espacio de direcciones de dstenv, y la mapea a la va addr
--hace que la va UTEMP (en el espacio de direcciones del env actual) y mapee a al misma pagina fisica que la va addr
+Parametros: envid_t (dstenv) y una va (addr)
+-reserva una pagina, y la mapea a la va addr (en el espacio de direcciones de dstenv)
+-hace que la va UTEMP (en el espacio de direcciones del env actual) y mapee a la misma pagina fisica que la va addr (en el espacio de direcciones de dstenv)
 -copia la pagina mapeada en la va addr (en el espacio de direcciones del env actual) a la va UTEMP (en el espacio de direcciones del env actual)
 -desmapea la va UTEMP (en el espacio de direcciones del env actual)
 
@@ -137,11 +137,12 @@ Una llamada adicional a sys_page_map
 
 sys_page_map(dstenv, addr, dstenv, addr, PTE_P|PTE_U) 
 
+Alternativa para no hacer ams llamadas al sistema:
 Se chequea el boleano, si es con escritura, realizamos el duppage que esta ahi, sino hacer sys_page_map(0, addr, dstenv, addr, PTE_P|PTE_U) 
 Asi addr mapea a la misma pagina fisica desde los 2 espacios de direcciones, como es solo lectura la comparten.
 
 
 - ¿Por qué se usa ROUNDDOWN(&addr) para copiar el stack? ¿Qué es addr y por qué, si el stack crece hacia abajo, se usa ROUNDDOWN y no ROUNDUP?
 
-
+addr es una variable local de fork_v0, al hacer &addr tenemos un puntero al stack de fork_v0. Se debe copiar desde &addr hasta el inicio del stack (el stack crece hacia las direcciones bajas, pero lo copiamos desde las direcciones bajas hacia arriba), por eso se usa ROUNDOWN, si usaramos ROUNDUP habria parte de la memoria que no seria copiada
 
