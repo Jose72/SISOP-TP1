@@ -88,12 +88,9 @@ contador_env
 ------------
 - ¿qué ocurrirá con esa página en env_free() al destruir el proceso?
 
-pp->ref es incrementado en el page_insert y luego decrementado en page_decref
-pp->ref es 0 entonces va a page_free y causa un panic porque pp->link no es NULL.
 
 - ¿qué código asegura que el buffer VGA físico no será nunca añadido a la lista de páginas libres?
 
-En page_init, hay que inicializar pp->ref a 1 (o cualquier numero mayor) para que no llegue a 0 nunca.
 
 
 envid2env
