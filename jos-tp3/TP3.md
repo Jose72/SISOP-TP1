@@ -4,15 +4,21 @@ TP2: Multitarea con desalojo
 static_assert
 -------------
 ¿cómo y por qué funciona la macro static_assert que define JOS?
--> No entiendo a que apunta la pregunta.. la macro valida en tiempo de compilacion si el parametro es valido. Lo que nos ahorraria tener un crash (assert false) en tiempo de ejecucion. 
-Para impementarlo usa un switch case en donde, si no entra al caso que se le pasa por parametro cae en un error (un case sin concluir).
+La macro valida en tiempo de compilacion si el parametro es valido. Lo que nos ahorraria tener un crash (assert false) en tiempo de ejecucion. 
+Para impementarlo usa un switch case en donde, si no entra al caso que se le pasa por parametro cae en un error (un case sin concluir):
+
+```
+#define static_assert(x) switch (x) case 0: case (x):
+```
+
+Si x es 0 (falso) se tiene un switch con case duplicado, lo que provoca un error en tiempo de compilacion.
+Por el contrario, si x es cualquier otro valor (true), el switch es valido.
 
 
 env_return
 ----------
 - al terminar un proceso su función umain() ¿dónde retoma la ejecución el kernel? Describir la secuencia de llamadas desde que termina umain() hasta que el kernel dispone del proceso.
--> no entiendo lo de "donde". Cuando finaliza el umain(), se llama a exit(), el cual invoca a sys_env_destroy(0). Es decir que destruye el env actual. 
-Al destruir un env, el kernel cambia el estado del mismo, y llama a sys_yield, por lo cual continua con el siguiente env disponible.
+Cuando finaliza el umain(), se llama a exit(), el cual invoca a sys_env_destroy(0). Es decir que destruye el env actual. Al destruir un env, el kernel cambia el estado del mismo, y llama a sys_yield, por lo cual continua con el siguiente env disponible.
 
 - ¿en qué cambia la función env_destroy() en este TP, respecto al TP anterior?
 Maneja distintos estados y multiples environments.
@@ -83,11 +89,10 @@ No runnable environments in the system!
 contador_env
 ------------
 - ¿qué ocurrirá con esa página en env_free() al destruir el proceso?
-pp->ref es incrementado en el page_insert y luego decrementado en page_decref
-pp->ref es 0 entonces va a page_free y causa un panic porque pp->link no es NULL.
+El pp->ref de la pag se incrementa en page_insert (en cada env_setup_vm), y se decremetna en page_decref (con cada env_free). Al final, pp->ref llegara a 0 y la pagina se añade a la lista de pags libres. 
 
 - ¿qué código asegura que el buffer VGA físico no será nunca añadido a la lista de páginas libres?
-page_init -> inicializar pp->ref a 1 (o cualquier numero mayor)
+Habria que inicializar el pp->ref de la pagina a 1 (u otro valor mayor) para que nunca llegue a 0.
 
 
 envid2env
@@ -99,8 +104,7 @@ Destruye el env actual
 Destruye a todos los procesos que pertenecen al mismo grupo del proceso llamador.
 
 - JOS: sys_env_destroy(-1)
-error?
--> mataria al ultimo env de NENV?
+Busca el env con envid2env, en la pos ENVX(-1) = 1023 del array de envs, si el env no fue creado retorna error, sino se destruye.
 
 - Linux: kill(-1, 9)
 Destruye a todos los procesos que pueden escuchar interrupciones del proceso llamador (exeptuando al proceso init).
@@ -115,20 +119,29 @@ Depende, el dumbfork copia el espacio de direcciones por encima de UTEXT hasta e
 No, en duppage cuando se aloca la pagina y se mapea en el dstenv, se hace siempre con permiso de escritura.
 
 - Describir el funcionamiento de la función duppage().
-Recibe un envid_t (dstenv) y una va (addr)
--> reserva una pagina en el espacio de direcciones de dstenv, y la mapea a la va addr
--> hace que la va UTEMP (en el espacio de direcciones del env actual) y mapee a al misma pagina fisica que la va addr
--> copia la pagina mapeada en la va addr (en el espacio de direcciones del env actual) a la va UTEMP (en el espacio de direcciones del env actual)
--> desmapea la va UTEMP (en el espacio de direcciones del env actual)
+Parametros: envid_t (dstenv) y una va (addr)
+-reserva una pagina, y la mapea a la va addr (en el espacio de direcciones de dstenv)
+-hace que la va UTEMP (en el espacio de direcciones del env actual) y mapee a la misma pagina fisica que la va addr (en el espacio de direcciones de dstenv)
+-copia la pagina mapeada en la va addr (en el espacio de direcciones del env actual) a la va UTEMP (en el espacio de direcciones del env actual)
+-desmapea la va UTEMP (en el espacio de direcciones del env actual)
 
 De esta forma queda un pagina mapeada a la direccion addr en el espacio de direcciones de dstenv, con el mismo contenido que la pagina mapeada en la direccion addr en el espacio de direcciones del env actual
 
-- Supongamos que se añade a duppage() un argumento booleano que indica si la página debe quedar como solo-lectura en el proceso hijo: indicar qué llamada adicional se debería hacer si el booleano es true describir un algoritmo alternativo que no aumente el número de llamadas al sistema, que debe quedar en 3 (1 × alloc, 1 × map, 1 × unmap).
-Una llamada adicional a sys_page_map: sys_page_map(dstenv, addr, dstenv, addr, PTE_P|PTE_U) 
+
+- Supongamos que se añade a duppage() un argumento booleano que indica si la página debe quedar como solo-lectura en el proceso hijo:
+indicar qué llamada adicional se debería hacer si el booleano es true
+describir un algoritmo alternativo que no aumente el número de llamadas al sistema, que debe quedar en 3 (1 × alloc, 1 × map, 1 × unmap).
+   
+Una llamada adicional a sys_page_map
+
+sys_page_map(dstenv, addr, dstenv, addr, PTE_P|PTE_U) 
+
+Alternativa para no hacer ams llamadas al sistema:
 Se chequea el boleano, si es con escritura, realizamos el duppage que esta ahi, sino hacer sys_page_map(0, addr, dstenv, addr, PTE_P|PTE_U) 
 Asi addr mapea a la misma pagina fisica desde los 2 espacios de direcciones, como es solo lectura la comparten.
 
 - ¿Por qué se usa ROUNDDOWN(&addr) para copiar el stack? ¿Qué es addr y por qué, si el stack crece hacia abajo, se usa ROUNDDOWN y no ROUNDUP?
+addr es una variable local de fork_v0, al hacer &addr tenemos un puntero al stack de fork_v0. Se debe copiar desde &addr hasta el inicio del stack (el stack crece hacia las direcciones bajas, pero lo copiamos desde las direcciones bajas hacia arriba), por eso se usa ROUNDOWN, si usaramos ROUNDUP habria parte de la memoria que no seria copiada
 
 
 contador_fork

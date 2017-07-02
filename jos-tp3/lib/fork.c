@@ -79,10 +79,14 @@ dup_or_share(envid_t dstenv, void *va, int perm)
 {
 	int error;
 
-        //direccion de I/O, hacer return, no hay que mapear de nuevo
-        if (perm & (PTE_PCD | PTE_PWT)) {     
+       
+
+        //direccion de I/O , hacer return, no hay que mapear de nuevo
+        if ((perm & PTE_PCD) || (PTE_PWT & perm ) || (PTE_MAPPED & perm )) {     
                 return 0;
         }
+
+        perm = perm & PTE_SYSCALL;
 
         //si es escritura
 	if ((perm & PTE_W)) {
@@ -146,7 +150,7 @@ fork_v0(void)
 
     	        if ((uvpd[PDX(addr)] & PTE_P) && (uvpt[PGNUM(addr)] & PTE_P)
     			&& (uvpt[PGNUM(addr)] & PTE_U)) {
-			dup_or_share(envid, addr, uvpt[PGNUM(addr)] & PTE_SYSCALL);
+			dup_or_share(envid, addr, uvpt[PGNUM(addr)]);
     	        }
         }
 
