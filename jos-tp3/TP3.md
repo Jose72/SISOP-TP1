@@ -5,6 +5,13 @@ static_assert
 -------------
 ¿cómo y por qué funciona la macro static_assert que define JOS?
 
+```
+#define static_assert(x) switch (x) case 0: case (x):
+```
+
+Si x es 0 (falso) se tiene un switch con case duplicado, lo que provoca un error en tiempo de compilacion.
+Por el contrario, si x es cualquier otro valor (true), el switch es valido.
+
 
 env_return
 ----------
