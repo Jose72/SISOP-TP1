@@ -4,6 +4,7 @@ TP2: Multitarea con desalojo
 static_assert
 -------------
 ¿cómo y por qué funciona la macro static_assert que define JOS?
+
 La macro valida en tiempo de compilacion si el parametro es valido. Lo que nos ahorraria tener un crash (assert false) en tiempo de ejecucion. 
 Para impementarlo usa un switch case en donde, si no entra al caso que se le pasa por parametro cae en un error (un case sin concluir):
 
@@ -18,9 +19,11 @@ Por el contrario, si x es cualquier otro valor (true), el switch es valido.
 env_return
 ----------
 - al terminar un proceso su función umain() ¿dónde retoma la ejecución el kernel? Describir la secuencia de llamadas desde que termina umain() hasta que el kernel dispone del proceso.
+
 Cuando finaliza el umain(), se llama a exit(), el cual invoca a sys_env_destroy(0). Es decir que destruye el env actual. Al destruir un env, el kernel cambia el estado del mismo, y llama a sys_yield, por lo cual continua con el siguiente env disponible.
 
 - ¿en qué cambia la función env_destroy() en este TP, respecto al TP anterior?
+
 Maneja distintos estados y multiples environments.
 
 
@@ -89,36 +92,45 @@ No runnable environments in the system!
 contador_env
 ------------
 - ¿qué ocurrirá con esa página en env_free() al destruir el proceso?
-El pp->ref de la pag se incrementa en page_insert (en cada env_setup_vm), y se decremetna en page_decref (con cada env_free). Al final, pp->ref llegara a 0 y la pagina se añade a la lista de pags libres. 
+
+El pp->ref de la pag se incrementa en page_insert (en cada env_setup_vm), y se decrementa en page_decref (con cada env_free). Al final, pp->ref llegara a 0 y la pagina se añade a la lista de pags libres. 
 
 - ¿qué código asegura que el buffer VGA físico no será nunca añadido a la lista de páginas libres?
+
 Habria que inicializar el pp->ref de la pagina a 1 (u otro valor mayor) para que nunca llegue a 0.
 
 
 envid2env
 ---------
 - en JOS, si un proceso llama a sys_env_destroy(0)
+
 Destruye el env actual
 
 - en Linux, si un proceso llama a kill(0, 9)
+
 Destruye a todos los procesos que pertenecen al mismo grupo del proceso llamador.
 
 - JOS: sys_env_destroy(-1)
+
 Busca el env con envid2env, en la pos ENVX(-1) = 1023 del array de envs, si el env no fue creado retorna error, sino se destruye.
 
 - Linux: kill(-1, 9)
+
 Destruye a todos los procesos que pueden escuchar interrupciones del proceso llamador (exeptuando al proceso init).
 
 
 dumbfork
 --------
 - Si, antes de llamar a dumbfork(), el proceso se reserva a sí mismo una página con sys_page_alloc() ¿se propagará una copia al proceso hijo? ¿Por qué?
+
 Depende, el dumbfork copia el espacio de direcciones por encima de UTEXT hasta end, y sys_page_alloc() permite alocar por debajo de UTOP, mientras este entre esos se propagara, si la pagina fue mapeada por debajo de UTEXT (por ej en UTEMP) no sera copiada.
 
 - ¿Se preserva el estado de solo-lectura en las páginas copiadas? Mostrar, con código en espacio de usuario, cómo saber si una dirección de memoria es modificable por el proceso, o no.
+
 No, en duppage cuando se aloca la pagina y se mapea en el dstenv, se hace siempre con permiso de escritura.
 
 - Describir el funcionamiento de la función duppage().
+
 Parametros: envid_t (dstenv) y una va (addr)
 -reserva una pagina, y la mapea a la va addr (en el espacio de direcciones de dstenv)
 -hace que la va UTEMP (en el espacio de direcciones del env actual) y mapee a la misma pagina fisica que la va addr (en el espacio de direcciones de dstenv)
@@ -136,20 +148,25 @@ Una llamada adicional a sys_page_map
 
 sys_page_map(dstenv, addr, dstenv, addr, PTE_P|PTE_U) 
 
-Alternativa para no hacer ams llamadas al sistema:
+Alternativa para no hacer mas llamadas al sistema:
 Se chequea el boleano, si es con escritura, realizamos el duppage que esta ahi, sino hacer sys_page_map(0, addr, dstenv, addr, PTE_P|PTE_U) 
 Asi addr mapea a la misma pagina fisica desde los 2 espacios de direcciones, como es solo lectura la comparten.
 
 - ¿Por qué se usa ROUNDDOWN(&addr) para copiar el stack? ¿Qué es addr y por qué, si el stack crece hacia abajo, se usa ROUNDDOWN y no ROUNDUP?
+
 addr es una variable local de fork_v0, al hacer &addr tenemos un puntero al stack de fork_v0. Se debe copiar desde &addr hasta el inicio del stack (el stack crece hacia las direcciones bajas, pero lo copiamos desde las direcciones bajas hacia arriba), por eso se usa ROUNDOWN, si usaramos ROUNDUP habria parte de la memoria que no seria copiada
 
 
 contador_fork
 -------------
 - ¿Funciona? ¿Qué está ocurriendo con el mapping de VGA_USER? ¿Dónde hay que arreglarlo?
-No. Al crear un nuevo env, se sigue copiando la pagina del buffer VGA. En dup_or_share se puede solucionar validando que la pagina no este mapeada.
+
+No. Al crear un nuevo env, se crea una nueva pagina, se copia el contenido de la pagina del buffer VGA y se mapea. Esto esta mal, el mapeo del buffer VGA ya se hizo en env_setup_vm, no es necesario hacer nada con la pagina.
+En dup_or_share se puede solucionar, haciando que esa pagina no sea mapeada de nuevo.
 
 - ¿Podría fork() darse cuenta, en lugar de usando un flag propio, mirando los flags PTE_PWT y/o PTE_PCD? (Suponiendo que env_setup_vm() los añadiera para VGA_USER.)
+
+Si, habria que agregar el chequeo para las paginas que contengan esos flags.
 
 
 
