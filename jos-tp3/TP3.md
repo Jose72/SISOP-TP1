@@ -161,12 +161,12 @@ contador_fork
 -------------
 - ¿Funciona? ¿Qué está ocurriendo con el mapping de VGA_USER? ¿Dónde hay que arreglarlo?
 
-No. Al crear un nuevo env, se crea una nueva pagina, se copia el contenido de la pagina del buffer VGA y se mapea. Esto esta mal, el mapeo del buffer VGA ya se hizo en env_setup_vm, no es necesario hacer nada con la pagina.
-En dup_or_share se puede solucionar, haciando que esa pagina no sea mapeada de nuevo.
+No. Al crear un nuevo env, se aloca una nueva pagina, se copia el contenido de la pagina del buffer VGA y se mapea a la direccion virtual. Esto esta mal, el mapeo del buffer VGA ya se hizo en env_setup_vm, no es necesario hacer nada con la pagina.
+En dup_or_share se puede solucionar, haciendo que esa pagina no sea mapeada de nuevo, simplemente hay que saltearla.
 
 - ¿Podría fork() darse cuenta, en lugar de usando un flag propio, mirando los flags PTE_PWT y/o PTE_PCD? (Suponiendo que env_setup_vm() los añadiera para VGA_USER.)
 
-Si, habria que agregar el chequeo para las paginas que contengan esos flags.
+Si, habria que agregar el chequeo en fork para las paginas que contengan esos flags sean salteadas cuando haga la copia.
 
 
 
