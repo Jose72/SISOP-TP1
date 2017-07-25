@@ -32,7 +32,6 @@ def test(points, title=None, parent=None):
 
         def run_test():
             global TOTAL, POSSIBLE, CURRENT_TEST
-            nonlocal points
 
             # Handle test dependencies
             if run_test.complete:
@@ -43,7 +42,6 @@ def test(points, title=None, parent=None):
 
             # Run the test
             fail = None
-            not_fail = None
             start = time.time()
             CURRENT_TEST = run_test
             sys.stdout.write("%s: " % title)
@@ -52,17 +50,12 @@ def test(points, title=None, parent=None):
                 fn()
             except AssertionError as e:
                 fail = "".join(traceback.format_exception_only(type(e), e))
-            except NotImplementedError:
-                not_fail = ("yellow", "SKIPPED")
-                points = 0
-            else:
-                not_fail = ("green", "OK")
 
             # Display and handle test result
             POSSIBLE += points
-            if points or not_fail:
+            if points:
                 print("%s" % \
-                    (color("red", "FAIL") if fail else color(*not_fail)), end=' ')
+                    (color("red", "FAIL") if fail else color("green", "OK")), end=' ')
             if time.time() - start > 0.1:
                 print("(%.1fs)" % (time.time() - start), end=' ')
             print()
@@ -231,8 +224,7 @@ def maybe_unlink(*paths):
             if e.errno != errno.ENOENT:
                 raise
 
-COLORS = {"default": "\033[0m", "red": "\033[31m", "green": "\033[32m",
-          "yellow": "\033[33m"}
+COLORS = {"default": "\033[0m", "red": "\033[31m", "green": "\033[32m"}
 
 def color(name, text):
     if options.color == "always" or (options.color == "auto" and os.isatty(1)):

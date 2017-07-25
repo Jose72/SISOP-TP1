@@ -30,41 +30,8 @@ sched_yield(void)
 
 	// LAB 4: Your code here.
 
-	struct Env *nextEnv = NULL;
-	int envIndex = 0;
-
-	if (curenv) {
-		envIndex = ENVX(curenv->env_id) + 1; // Begin the loop from the next env
-	}
-
-	// TODO: fix codigo repetido
-	for (int i = envIndex; i < NENV; i++) {
-		struct Env *actualEnv = &envs[i];
-		if (actualEnv->env_status == ENV_RUNNABLE) {
-			nextEnv = actualEnv;
-			break;
-		}
-	}
-
-	if (!nextEnv) {
-		for (int i = 0; i < envIndex; i++) {
-			struct Env *actualEnv = &envs[i];
-			if (actualEnv->env_status == ENV_RUNNABLE) {
-				nextEnv = actualEnv;
-				break;
-			}
-		}
-	}
-
-	if (nextEnv) {
-		env_run(nextEnv);
-	} else if (curenv && curenv->env_status == ENV_RUNNING) {
-		env_run(curenv);
-	}
-
 	// sched_halt never returns
 	sched_halt();
-
 }
 
 // Halt this CPU when there is nothing to do. Wait until the
@@ -102,14 +69,15 @@ sched_halt(void)
 	unlock_kernel();
 
 	// Reset stack pointer, enable interrupts and then halt.
-	asm volatile("movl $0, %%ebp\n"
-	             "movl %0, %%esp\n"
-	             "pushl $0\n"
-	             "pushl $0\n"
-	             "sti\n"
-	             "1:\n"
-	             "hlt\n"
-	             "jmp 1b\n"
-	             :
-	             : "a"(thiscpu->cpu_ts.ts_esp0));
+	asm volatile (
+		"movl $0, %%ebp\n"
+		"movl %0, %%esp\n"
+		"pushl $0\n"
+		"pushl $0\n"
+		"sti\n"
+		"1:\n"
+		"hlt\n"
+		"jmp 1b\n"
+	: : "a" (thiscpu->cpu_ts.ts_esp0));
 }
+

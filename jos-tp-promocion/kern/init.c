@@ -21,12 +21,12 @@ static void boot_aps(void);
 void
 i386_init(void)
 {
-	extern char __bss_start[], end[];
+	extern char edata[], end[];
 
 	// Before doing anything else, complete the ELF loading process.
 	// Clear the uninitialized global data (BSS) section of our program.
 	// This ensures that all static/global variables start out zero.
-	memset(__bss_start, 0, end - __bss_start);
+	memset(edata, 0, end - edata);
 
 	// Initialize the console.
 	// Can't call cprintf until after we do this!
@@ -50,34 +50,23 @@ i386_init(void)
 
 	// Acquire the big kernel lock before waking up APs
 	// Your code here:
-        lock_kernel();
 
 	// Starting non-boot CPUs
 	boot_aps();
 
+	// Start fs.
+	ENV_CREATE(fs_fs, ENV_TYPE_FS);
+
 #if defined(TEST)
 	// Don't touch -- used by grading script!
 	ENV_CREATE(TEST, ENV_TYPE_USER);
-
-	// Hack horrible mal para la corrección de la parte 1.
-	// -d
-	#define STRING(x) STRNG_(x)
-	#define STRNG_(x) #x
-	#define TESTED(x) (__builtin_strcmp(#x, STRING(TEST)) == 0)
-
-	if (TESTED(user_yield) || TESTED(user_spin0))
-		ENV_CREATE(TEST, ENV_TYPE_USER);
 #else
 	// Touch all you want.
-
-	// Para correr cualquier proc de usuario poner en el 1er param de ENV_CREATE:
-	// user_<nombre del archivo .c>
-	// ej: 	ENV_CREATE(user_contador, ENV_TYPE_USER);
-
-	ENV_CREATE(user_hello, ENV_TYPE_USER);
-	ENV_CREATE(user_hello, ENV_TYPE_USER);
-	ENV_CREATE(user_hello, ENV_TYPE_USER);
+	ENV_CREATE(user_icode, ENV_TYPE_USER);
 #endif // TEST*
+
+	// Should not be necessary - drains keyboard because interrupt has given up.
+	kbd_intr();
 
 	// Schedule and run the first user environment!
 	sched_yield();
@@ -133,11 +122,9 @@ mp_main(void)
 	// only one CPU can enter the scheduler at a time!
 	//
 	// Your code here:
-        lock_kernel();
-        sched_yield();
 
 	// Remove this after you finish Exercise 4
-	//for (;;);
+	for (;;);
 }
 
 /*
@@ -163,9 +150,9 @@ _panic(const char *file, int line, const char *fmt,...)
 	asm volatile("cli; cld");
 
 	va_start(ap, fmt);
-	cprintf(">>>\n>>> kernel panic on CPU %d at %s:%d: ", cpunum(), file, line);
+	cprintf("kernel panic on CPU %d at %s:%d: ", cpunum(), file, line);
 	vcprintf(fmt, ap);
-	cprintf("\n>>>\n");
+	cprintf("\n");
 	va_end(ap);
 
 dead:

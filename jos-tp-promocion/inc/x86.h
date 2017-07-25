@@ -207,7 +207,7 @@ write_eflags(uint32_t eflags)
 	asm volatile("pushl %0; popfl" : : "r" (eflags));
 }
 
-static inline uint32_t __attribute__((always_inline))
+static inline uint32_t
 read_ebp(void)
 {
 	uint32_t ebp;
