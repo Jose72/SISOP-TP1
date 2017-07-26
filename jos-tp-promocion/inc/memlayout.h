@@ -6,6 +6,9 @@
 #include <inc/mmu.h>
 #endif /* not __ASSEMBLER__ */
 
+#define VGA_BUFFER	0xb8000 // PA real
+#define VGA_USER	0xb8000 // VA para mapear la PA real
+
 /*
  * This file contains definitions for memory management in our OS,
  * which are relevant to both the kernel and user-mode software.

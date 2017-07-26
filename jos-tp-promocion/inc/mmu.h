@@ -65,6 +65,8 @@
 #define PTE_PS		0x080	// Page Size
 #define PTE_G		0x100	// Global
 
+#define PTE_MAPPED	0x200
+
 // The PTE_AVAIL bits aren't used by the kernel or interpreted by the
 // hardware, so user processes are allowed to set them arbitrarily.
 #define PTE_AVAIL	0xE00	// Available for software use
@@ -81,7 +83,7 @@
 #define CR0_EM		0x00000004	// Emulation
 #define CR0_TS		0x00000008	// Task Switched
 #define CR0_ET		0x00000010	// Extension Type
-#define CR0_NE		0x00000020	// Numeric Errror
+#define CR0_NE		0x00000020	// Numeric Error
 #define CR0_WP		0x00010000	// Write Protect
 #define CR0_AM		0x00040000	// Alignment Mask
 #define CR0_NW		0x20000000	// Not Writethrough
